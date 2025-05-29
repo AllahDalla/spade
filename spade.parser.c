@@ -1,14 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "spade.parser.h"
 #include "spade.lexer.h"
+#include "spade.parser.h"
 
-typedef struct {
-    Token *tokens;
-    int current;
-    int token_count;
-} Parser;
 
 // Helper functions
 Token current_token(Parser *parser) {
@@ -75,10 +70,75 @@ void free_AST(ASTNode *node) {
     }
 }
 
+// Helper function to print AST (for debugging)
+void print_AST(ASTNode *node, int indent) {
+    if (!node) return;
+    
+    // Print indentation
+    for (int i = 0; i < indent; i++) printf("  ");
+    
+    switch (node->type) {
+        case AST_VARIABLE_DECLARATION:
+            printf("VAR_DECL: type=%d, name='%s'\n", 
+                   node->data.var_declaration.var_type,
+                   node->data.var_declaration.name);
+            if (node->data.var_declaration.value) {
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("value:\n");
+                print_AST(node->data.var_declaration.value, indent + 2);
+            }
+            break;
+            
+        case AST_NUMBER:
+            printf("NUMBER: %d\n", node->data.number.value);
+            break;
+            
+        case AST_IDENTIFIER:
+            printf("IDENTIFIER: '%s'\n", node->data.identifier.name);
+            break;
+            
+        case AST_BOOLEAN:
+            printf("BOOLEAN: %s\n", node->data.boolean.value ? "true" : "false");
+            break;
+            
+        case AST_NULL:
+            printf("NULL\n");
+            break;
+            
+        default:
+            printf("UNKNOWN NODE TYPE: %d\n", node->type);
+    }
+}
+
 
 // AST construction functions
 
 ASTNode *parse_expression(Parser *parser){
+    Token token = current_token(parser);
+    if(token.value == NULL){
+        printf("Error: Expected expression\n");
+        return NULL;
+    }
+    
+    // parse expression
+    ASTNode *node = malloc(sizeof(ASTNode));
+    if(token.type == TOKEN_IDENTIFIER){
+        node->type = AST_IDENTIFIER;
+        node->data.identifier.name = strdup(token.value);
+        advance(parser);
+        return node;
+    }else if(token.type == TOKEN_NUMBER){
+        node->type = AST_NUMBER;
+        node->data.number.value = atoi(token.value);
+        advance(parser);
+        return node;
+    }else if(token.type == TOKEN_BOOL){
+        node->type = AST_BOOLEAN;
+        node->data.boolean.value = atoi(token.value);
+        advance(parser);
+        return node;
+    }
+
     return NULL;
 }
 

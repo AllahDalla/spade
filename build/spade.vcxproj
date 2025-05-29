@@ -322,6 +322,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemGroup>
     <ClCompile Include="C:\Users\Temp\Documents\Codebases\compiler\spade\spade.c" />
     <ClCompile Include="C:\Users\Temp\Documents\Codebases\compiler\spade\spade.lexer.c" />
+    <ClCompile Include="C:\Users\Temp\Documents\Codebases\compiler\spade\spade.parser.c" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

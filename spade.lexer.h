@@ -1,5 +1,5 @@
 #ifndef SPADE_LEXER_H
-#define _SPADE_LEXER_H
+#define SPADE_LEXER_H
 
 /**
  * Defines the types of tokens that can be recognized during lexical analysis.

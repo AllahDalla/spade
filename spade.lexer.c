@@ -122,7 +122,7 @@ const char *get_token_name(enum TokenType type) {
 }
 
 // Helper functions
-enum TokenType get_keyword_token(char *identifier) {
+int get_keyword_token(char *identifier) {
     int len = sizeof(keywords) / sizeof(keywords[0]);
     for (int i = 0; i < len; i++) {
         if (strcmp(identifier, keywords[i].keyword) == 0) {
@@ -132,7 +132,7 @@ enum TokenType get_keyword_token(char *identifier) {
     return TOKEN_IDENTIFIER; // Not a keyword, so it's an identifier
 }
 
-enum TokenType get_operator_token(char *operator) {
+int get_operator_token(char *operator) {
     int len = sizeof(operators) / sizeof(operators[0]);
     for (int i = 0; i < len; i++) {
         if (strcmp(operator, operators[i].keyword) == 0) {

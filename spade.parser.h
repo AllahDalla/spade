@@ -1,5 +1,7 @@
 #ifndef SPADE_PARSER_H
-#define _SPADE_PARSER_H
+#define SPADE_PARSER_H
+
+#include "spade.lexer.h"
 
 typedef enum {
     AST_VARIABLE_DECLARATION,
@@ -33,5 +35,15 @@ typedef struct ASTNode {
         // null doesn't need data
     } data;
 } ASTNode;
+
+typedef struct {
+    Token *tokens;
+    int current;
+    int token_count;
+} Parser;
+
+void print_AST(ASTNode *node, int indent);
+void free_AST(ASTNode *node);
+ASTNode *parse_variable_declaration(Parser *parser);
 
 #endif
