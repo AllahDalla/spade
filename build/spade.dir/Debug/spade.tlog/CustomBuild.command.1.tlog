@@ -1,6 +1,6 @@
-^C:\USERS\TEMP\DOCUMENTS\CODEBASES\COMPILER\CMAKELISTS.TXT
+^C:\USERS\TEMP\DOCUMENTS\CODEBASES\COMPILER\SPADE\CMAKELISTS.TXT
 setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Temp/Documents/Codebases/compiler -BC:/Users/Temp/Documents/Codebases/compiler/build --check-stamp-file C:/Users/Temp/Documents/Codebases/compiler/build/CMakeFiles/generate.stamp
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Temp/Documents/Codebases/compiler/spade -BC:/Users/Temp/Documents/Codebases/compiler/spade/build --check-stamp-file C:/Users/Temp/Documents/Codebases/compiler/spade/build/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

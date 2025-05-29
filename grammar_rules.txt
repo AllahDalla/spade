@@ -1,0 +1,14 @@
+variable_declaration → type identifier ';'                    // Declaration without initialization
+                    |  type identifier '=' simple_expression ';'  // Declaration with initialization
+
+type → 'int' | 'string' | 'boolean' | 'void' | 'float' | 'double' | 'long'
+
+identifier → TOKEN_IDENTIFIER
+
+simple_expression → TOKEN_NUMBER        // Like: 10
+                 |  TOKEN_IDENTIFIER    // Like: variable
+                 |  TOKEN_TRUE          // Like: true  
+                 |  TOKEN_FALSE         // Like: false
+                 |  TOKEN_NULL          // Like: null
+                 |  TOKEN_STRING        // Like: "Hello World!"
+                 

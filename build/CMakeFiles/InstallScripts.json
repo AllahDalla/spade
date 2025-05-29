@@ -1,7 +1,7 @@
 {
 	"InstallScripts" : 
 	[
-		"C:/Users/Temp/Documents/Codebases/compiler/build/cmake_install.cmake"
+		"C:/Users/Temp/Documents/Codebases/compiler/spade/build/cmake_install.cmake"
 	],
 	"Parallel" : false
 }
