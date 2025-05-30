@@ -81,6 +81,13 @@ typedef struct {
 const char *get_token_name(enum TokenType type);
 
 /**
+ * Prints the details of a single token to the console.
+ *
+ * @param token The token to be printed, containing its type and value
+ */
+void print_token(Token token);
+
+/**
  * Frees memory allocated for an array of tokens.
  *
  * @param token The array of tokens to be freed

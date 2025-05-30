@@ -8,7 +8,7 @@ int token_count = 0;
 
 void tokenize_file(char *filename){
     token_count = lexer(filename, token_array, MAX_TOKENS);
-    printf("Token 1 : %d, %s\n", token_array[0].type, token_array[0].value);
+    for (int i = 0; i < token_count; i++)  print_token(token_array[i]);
     printf("Token Count: %d\n", token_count);
 }
 
@@ -20,10 +20,9 @@ int main(int argc, char *argv[]){
         return 1;
     }
     
-    tokenize_file(argv[1]);
     
     printf("=== LEXER OUTPUT ===\n");
-    printf("Token Count: %d\n", token_count);
+    tokenize_file(argv[1]);
 
     if(token_count < 1){
         printf("Error: No tokens found in file <%s>.\n", argv[1]);

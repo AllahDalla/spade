@@ -15,7 +15,7 @@ const KeywordMap keywords[] = {
     {"float", TOKEN_FLOAT},
     {"double", TOKEN_DOUBLE},
     {"string", TOKEN_STRING},
-    {"boolean", TOKEN_BOOL},
+    {"bool", TOKEN_BOOL},
     {"void", TOKEN_VOID},
     
     // Control structures
@@ -114,6 +114,8 @@ const char *token_type_strings[] = {
     "TOKEN_ARROW",
 };
 
+// Helper functions
+
 const char *get_token_name(enum TokenType type) {
     if (type >= 0 && type < sizeof(token_type_strings) / sizeof(token_type_strings[0])) {
         return token_type_strings[type];
@@ -121,7 +123,11 @@ const char *get_token_name(enum TokenType type) {
     return "UNKNOWN_TOKEN";
 }
 
-// Helper functions
+
+void print_token(Token token) {
+    printf("[Token] Value: %s \t Type: %s\n", token.value, get_token_name(token.type));
+}
+
 int get_keyword_token(char *identifier) {
     int len = sizeof(keywords) / sizeof(keywords[0]);
     for (int i = 0; i < len; i++) {
@@ -169,6 +175,10 @@ void free_tokens(Token *token, int token_count){
 
 int lexer(char *filename, Token *token_array, int max_tokens){
     FILE *file = fopen(filename, "rb");
+    if(!file){
+        printf("Error opening file: %s\n", filename);
+        return 0;
+    }
     int byte;
     int token_index = 0;
     int token_count = 0;
@@ -186,7 +196,6 @@ int lexer(char *filename, Token *token_array, int max_tokens){
 
             buffer[index] = '\0';
             Token tk = token_type(buffer, 1);
-            printf("<%s>: %s\n", get_token_name(tk.type), tk.value);
             if(token_index < max_tokens) token_array[token_index++] = tk;
             token_count++;
             if(byte != EOF) ungetc(byte, file);
@@ -201,7 +210,6 @@ int lexer(char *filename, Token *token_array, int max_tokens){
                 if(index < 256) buffer[index++] = byte;
             }
             buffer[index] = '\0';
-            printf("<TOKEN_NUMBER>: %s\n", buffer);
             // create a token for number TODO: handle floats, doubles, etc.
             Token tk;
             tk.type = TOKEN_NUMBER;
@@ -226,7 +234,6 @@ int lexer(char *filename, Token *token_array, int max_tokens){
                     buffer[index++] = next_byte;
                     buffer[index] = '\0';
                     Token tk = token_type(buffer, 0);
-                    printf("<%s>: %s\n", get_token_name(tk.type), tk.value);
                     if(token_index < max_tokens) token_array[token_index++] = tk;
                     token_count++;
                     continue;
@@ -237,7 +244,6 @@ int lexer(char *filename, Token *token_array, int max_tokens){
 
             buffer[index] = '\0';
             Token tk = token_type(buffer, 0);
-            printf("<%s>: %s\n", get_token_name(tk.type), tk.value);
             if(token_index < max_tokens) token_array[token_index++] = tk;
             token_count++;
         }

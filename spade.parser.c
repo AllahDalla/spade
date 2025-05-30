@@ -20,6 +20,11 @@ void advance(Parser *parser) {
     }
 }
 
+Token previous_token(Parser *parser) {
+    return parser->tokens[parser->current - 1];
+}
+
+
 int match(Parser *parser, enum TokenType type) {
     if (current_token(parser).type == type) {
         advance(parser);
@@ -35,7 +40,6 @@ int is_data_type_token(enum TokenType type) {
             type == TOKEN_FLOAT || type == TOKEN_DOUBLE || 
             type == TOKEN_LONG);
 }
-
 // frees variable declarations for now
 void free_AST(ASTNode *node) {
     if (node == NULL) {
@@ -45,22 +49,43 @@ void free_AST(ASTNode *node) {
             case AST_VARIABLE_DECLARATION:
                 if(node->data.var_declaration.name != NULL){
                     free(node->data.var_declaration.name);
-                    node->data.var_declaration.name = NULL;
                 }
 
                 if(node->data.var_declaration.value != NULL){
                     free_AST(node->data.var_declaration.value);
-                    node->data.var_declaration.value = NULL;
                 }
                 break;
-            case AST_IDENTIFIER:
+            case AST_IDENTIFIER: {
+                if(node->data.identifier.name != NULL){
+                    free(node->data.identifier.name);
+                }
                 break;
-            case AST_NUMBER:
+            }
+            case AST_NUMBER: break;
+
+            case AST_BOOLEAN: break;
+
+            case AST_BINARY_OPERATION: {
+                if(node->data.bin_op.left != NULL){
+                    free_AST(node->data.bin_op.left);
+                }
+
+                if(node->data.bin_op.right != NULL){
+                    free_AST(node->data.bin_op.right);
+                }
+
                 break;
-            case AST_BOOLEAN:
+            }
+
+            case AST_UNARY_OPERATION: {
+                if(node->data.unary_op.operand != NULL){
+                    free_AST(node->data.unary_op.operand);
+                }
                 break;
-            case AST_NULL:
-                break;
+            }
+
+            case AST_NULL: break;
+
             default:
                 printf("Unable to free AST node - Unknown AST node type\n");
             
@@ -79,8 +104,8 @@ void print_AST(ASTNode *node, int indent) {
     
     switch (node->type) {
         case AST_VARIABLE_DECLARATION:
-            printf("VAR_DECL: type=%d, name='%s'\n", 
-                   node->data.var_declaration.var_type,
+            printf("VAR_DECL: type=%s, name='%s'\n", 
+                   get_token_name(node->data.var_declaration.var_type),
                    node->data.var_declaration.name);
             if (node->data.var_declaration.value) {
                 for (int i = 0; i < indent + 1; i++) printf("  ");
@@ -100,6 +125,32 @@ void print_AST(ASTNode *node, int indent) {
         case AST_BOOLEAN:
             printf("BOOLEAN: %s\n", node->data.boolean.value ? "true" : "false");
             break;
+
+        case AST_BINARY_OPERATION: {
+            printf("BINARY_OPERATION: op=%s\n", get_token_name(node->data.bin_op.op));
+            if(node->data.bin_op.left){
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("left:\n");
+                print_AST(node->data.bin_op.left, indent + 2);
+            }
+            if(node->data.bin_op.right){
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("right:\n");
+                print_AST(node->data.bin_op.right, indent + 2);
+            }
+            break;
+
+        }
+
+        case AST_UNARY_OPERATION: {
+            printf("UNARY_OPERATION: op=%s\n", get_token_name(node->data.unary_op.op));
+            if(node->data.unary_op.operand){
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("operand:\n");
+                print_AST(node->data.unary_op.operand, indent + 2);
+            }
+            break;
+        }
             
         case AST_NULL:
             printf("NULL\n");
@@ -113,33 +164,199 @@ void print_AST(ASTNode *node, int indent) {
 
 // AST construction functions
 
+
+// ORDER OF OPERATIONS
+
+/*
+parse_expression (lowest precedence, e.g. assignment)
+parse_equality (==, !=)
+parse_comparison (<, >, <=, >=)
+parse_term (+, -)
+parse_factor (*, /, %)
+parse_unary (-, !)
+parse_primary (numbers, identifiers, parentheses)
+*/
+
 ASTNode *parse_expression(Parser *parser){
-    Token token = current_token(parser);
-    if(token.value == NULL){
-        printf("Error: Expected expression\n");
+    return parse_equality(parser);
+}
+
+ASTNode *parse_equality(Parser *parser){
+    ASTNode *left = parse_comparison(parser);
+    if(!left){
         return NULL;
     }
     
-    // parse expression
-    ASTNode *node = malloc(sizeof(ASTNode));
-    if(token.type == TOKEN_IDENTIFIER){
-        node->type = AST_IDENTIFIER;
-        node->data.identifier.name = strdup(token.value);
-        advance(parser);
-        return node;
-    }else if(token.type == TOKEN_NUMBER){
-        node->type = AST_NUMBER;
-        node->data.number.value = atoi(token.value);
-        advance(parser);
-        return node;
-    }else if(token.type == TOKEN_BOOL){
-        node->type = AST_BOOLEAN;
-        node->data.boolean.value = atoi(token.value);
-        advance(parser);
-        return node;
+    while(match(parser, TOKEN_EQUALS) || match(parser, TOKEN_NOT_EQUALS)){
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *right = parse_comparison(parser);
+        if(!right){
+            free_AST(left);
+            return NULL;
+        }
+        ASTNode *bin_node = malloc(sizeof(ASTNode));
+        bin_node->type = AST_BINARY_OPERATION;
+        bin_node->data.bin_op.op = operator;
+        bin_node->data.bin_op.left = left;
+        bin_node->data.bin_op.right = right;
+        left = bin_node;
     }
 
-    return NULL;
+    return left;
+}
+
+ASTNode *parse_comparison(Parser *parser){
+
+    ASTNode *left = parse_term(parser);
+    if(!left){
+        return NULL;
+    }
+
+    while(match(parser, TOKEN_LESS_THAN) || match(parser, TOKEN_GREATER_THAN) ||
+        match(parser, TOKEN_LESS_THAN_EQUALS) || match(parser, TOKEN_GREATER_THAN_EQUALS)){
+
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *right = parse_term(parser);
+        if(!right){
+            free_AST(left);
+            return NULL;
+        }
+
+        ASTNode *bin_node = malloc(sizeof(ASTNode));
+        bin_node->type = AST_BINARY_OPERATION;
+        bin_node->data.bin_op.op = operator;
+        bin_node->data.bin_op.left = left;
+        bin_node->data.bin_op.right = right;
+        left = bin_node;
+    }
+
+    return left;
+}
+
+ASTNode *parse_term(Parser *parser){
+
+    ASTNode *left = parse_factor(parser);
+    if(!left){
+        return NULL;
+    }
+
+    while(match(parser, TOKEN_PLUS) || match(parser, TOKEN_MINUS)){
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *right = parse_factor(parser);
+        if(!right){
+            free_AST(left);
+            return NULL;
+        }
+
+        ASTNode *bin_node = malloc(sizeof(ASTNode));
+        bin_node->type = AST_BINARY_OPERATION;
+        bin_node->data.bin_op.op = operator;
+        bin_node->data.bin_op.left = left;
+        bin_node->data.bin_op.right = right;
+        left = bin_node;
+    }
+
+    return left;
+}
+
+ASTNode *parse_factor(Parser *parser){
+
+    ASTNode *left = parse_unary(parser);
+    if(!left){
+        return NULL;
+    }
+
+    while(match(parser, TOKEN_MULTIPLY) || match(parser, TOKEN_DIVIDE) || match(parser, TOKEN_MODULO)){
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *right = parse_factor(parser);
+        if(!right){
+            free_AST(left);
+            return NULL;
+        }
+
+        ASTNode *bin_node = malloc(sizeof(ASTNode));
+        bin_node->type = AST_BINARY_OPERATION;
+        bin_node->data.bin_op.op = operator;
+        bin_node->data.bin_op.left = left;
+        bin_node->data.bin_op.right = right;
+        left = bin_node;
+    }
+
+    return left;
+}
+
+ASTNode *parse_unary(Parser *parser){
+
+    if(match(parser, TOKEN_MINUS) || match(parser, TOKEN_NOT)){
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *operand = parse_primary(parser); 
+        if(!operand){
+            return NULL;
+        }
+        ASTNode *unary_node = malloc(sizeof(ASTNode));
+        unary_node->type = AST_UNARY_OPERATION;
+        unary_node->data.unary_op.op = operator;
+        unary_node->data.unary_op.operand = operand;
+        return unary_node;
+    }
+
+    return parse_primary(parser);
+}
+
+ASTNode *parse_primary(Parser *parser){
+
+    switch(current_token(parser).type){
+        case TOKEN_NUMBER: {
+            ASTNode *node = malloc(sizeof(ASTNode));
+            node->type = AST_NUMBER;
+            node->data.number.value = atoi(current_token(parser).value);
+            advance(parser);
+            return node;
+        }
+
+        case TOKEN_IDENTIFIER: {
+            ASTNode *node = malloc(sizeof(ASTNode));
+            node->type = AST_IDENTIFIER;
+            node->data.identifier.name = strdup(current_token(parser).value);
+            advance(parser);
+            return node;
+        }
+
+        case TOKEN_TRUE: {
+            ASTNode *node = malloc(sizeof(ASTNode));
+            node->type = AST_BOOLEAN;
+            node->data.boolean.value = 1;
+            advance(parser);
+            return node;
+        }
+
+        case TOKEN_FALSE: {
+            ASTNode *node = malloc(sizeof(ASTNode));
+            node->type = AST_BOOLEAN;
+            node->data.boolean.value = 0;
+            advance(parser);
+            return node;
+        }
+
+        case TOKEN_LPAREN: {
+            advance(parser);
+            ASTNode *expr = parse_expression(parser);
+            if(!expr){
+                return NULL;
+            }
+            if(!match(parser, TOKEN_RPAREN)){
+                printf("Error: Expected ')' after expression\n");
+                free_AST(expr);
+                return NULL;
+            }
+            return expr;
+        }
+
+        default: {
+            printf("Error: Unexpeted token '%s'\n", current_token(parser).value);
+            return NULL;
+        }
+    }
 }
 
 ASTNode *parse_variable_declaration(Parser *parser){

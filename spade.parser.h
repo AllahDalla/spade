@@ -8,6 +8,8 @@ typedef enum {
     AST_NUMBER,
     AST_IDENTIFIER,
     AST_BOOLEAN,
+    AST_BINARY_OPERATION,
+    AST_UNARY_OPERATION,
     AST_NULL
 } ASTNodeType;
 
@@ -31,6 +33,17 @@ typedef struct ASTNode {
         struct {
             int value;  // 1 for true, 0 for false
         } boolean;
+
+        struct {
+            struct ASTNode *left;
+            struct ASTNode *right;
+            enum TokenType op;
+        } bin_op;
+
+        struct {
+            enum TokenType op;
+            struct ASTNode *operand;
+        } unary_op;
         
         // null doesn't need data
     } data;
@@ -44,6 +57,13 @@ typedef struct {
 
 void print_AST(ASTNode *node, int indent);
 void free_AST(ASTNode *node);
+ASTNode *parse_expression(Parser *parser);
+ASTNode *parse_equality(Parser *parser);
+ASTNode *parse_comparison(Parser *parser);
+ASTNode *parse_term(Parser *parser);
+ASTNode *parse_factor(Parser *parser);
+ASTNode *parse_unary(Parser *parser);
+ASTNode *parse_primary(Parser *parser);
 ASTNode *parse_variable_declaration(Parser *parser);
 
 #endif
