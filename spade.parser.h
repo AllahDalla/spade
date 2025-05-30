@@ -8,6 +8,7 @@ typedef enum {
     AST_NUMBER,
     AST_IDENTIFIER,
     AST_BOOLEAN,
+    AST_STRING_LITERAL,
     AST_BINARY_OPERATION,
     AST_UNARY_OPERATION,
     AST_NULL
@@ -33,6 +34,10 @@ typedef struct ASTNode {
         struct {
             int value;  // 1 for true, 0 for false
         } boolean;
+
+        struct {
+            char *value;
+        } string_lit;
 
         struct {
             struct ASTNode *left;

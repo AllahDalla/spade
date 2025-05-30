@@ -5,6 +5,17 @@
 #include "spade.parser.h"
 
 
+const char *ast_type_strings[] = {
+    "AST_VARIABLE_DECLARATION",
+    "AST_NUMBER",
+    "AST_IDENTIFIER",
+    "AST_BOOLEAN",
+    "AST_STRING_LITERAL",
+    "AST_BINARY_OPERATION",
+    "AST_UNARY_OPERATION",
+    "AST_NULL"
+};
+
 // Helper functions
 Token current_token(Parser *parser) {
     if (parser->current < parser->token_count) {
@@ -61,6 +72,14 @@ void free_AST(ASTNode *node) {
                 }
                 break;
             }
+
+            case AST_STRING_LITERAL: {
+                if(node->data.string_lit.value != NULL){
+                    free(node->data.string_lit.value);
+                }
+                break;
+            }
+
             case AST_NUMBER: break;
 
             case AST_BOOLEAN: break;
@@ -87,7 +106,7 @@ void free_AST(ASTNode *node) {
             case AST_NULL: break;
 
             default:
-                printf("Unable to free AST node - Unknown AST node type\n");
+                printf("Unable to free AST node - Unknown AST node type - %s\n", ast_type_strings[node->type]);
             
         }
 
@@ -120,6 +139,10 @@ void print_AST(ASTNode *node, int indent) {
             
         case AST_IDENTIFIER:
             printf("IDENTIFIER: '%s'\n", node->data.identifier.name);
+            break;
+
+        case AST_STRING_LITERAL:
+            printf("STRING_LITERAL: '%s'\n", node->data.string_lit.value);
             break;
             
         case AST_BOOLEAN:
@@ -266,20 +289,40 @@ ASTNode *parse_factor(Parser *parser){
         return NULL;
     }
 
-    while(match(parser, TOKEN_MULTIPLY) || match(parser, TOKEN_DIVIDE) || match(parser, TOKEN_MODULO)){
-        enum TokenType operator = previous_token(parser).type;
-        ASTNode *right = parse_factor(parser);
-        if(!right){
-            free_AST(left);
-            return NULL;
-        }
+    while(1){
+        if(match(parser, TOKEN_MULTIPLY) || match(parser, TOKEN_DIVIDE) || match(parser, TOKEN_MODULO)){
+            enum TokenType operator = previous_token(parser).type;
+            ASTNode *right = parse_factor(parser);
+            if(!right){
+                free_AST(left);
+                return NULL;
+            }
+    
+            ASTNode *bin_node = malloc(sizeof(ASTNode));
+            bin_node->type = AST_BINARY_OPERATION;
+            bin_node->data.bin_op.op = operator;
+            bin_node->data.bin_op.left = left;
+            bin_node->data.bin_op.right = right;
+            left = bin_node;
 
-        ASTNode *bin_node = malloc(sizeof(ASTNode));
-        bin_node->type = AST_BINARY_OPERATION;
-        bin_node->data.bin_op.op = operator;
-        bin_node->data.bin_op.left = left;
-        bin_node->data.bin_op.right = right;
-        left = bin_node;
+        }else if(current_token(parser).type ==  TOKEN_LPAREN){
+            enum TokenType operator = previous_token(parser).type;
+            ASTNode *right = parse_primary(parser);
+            if(!right){
+                free_AST(left);
+                return NULL;
+            }
+
+
+            ASTNode *bin_node = malloc(sizeof(ASTNode));
+            bin_node->type = AST_BINARY_OPERATION;
+            bin_node->data.bin_op.op = operator;
+            bin_node->data.bin_op.left = left;
+            bin_node->data.bin_op.right = right;
+            left = bin_node;
+        }else{
+            break;
+        }
     }
 
     return left;
@@ -318,6 +361,14 @@ ASTNode *parse_primary(Parser *parser){
             ASTNode *node = malloc(sizeof(ASTNode));
             node->type = AST_IDENTIFIER;
             node->data.identifier.name = strdup(current_token(parser).value);
+            advance(parser);
+            return node;
+        }
+
+        case TOKEN_STRING_LITERAL: {
+            ASTNode *node = malloc(sizeof(ASTNode));
+            node->type = AST_STRING_LITERAL;
+            node->data.string_lit.value = strdup(current_token(parser).value);
             advance(parser);
             return node;
         }

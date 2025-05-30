@@ -61,8 +61,7 @@ const KeywordMap operators[] = {
     {"[]", TOKEN_BRACKET},
     {"{}", TOKEN_BRACE},
     {",", TOKEN_COMMA},
-    {"->", TOKEN_ARROW}
-
+    {"->", TOKEN_ARROW},
 };
 
 const char *token_type_strings[] = {
@@ -112,6 +111,7 @@ const char *token_type_strings[] = {
     "TOKEN_SEMICOLON",
     "TOKEN_COMMA",
     "TOKEN_ARROW",
+    "TOKEN_STRING_LITERAL"
 };
 
 // Helper functions
@@ -240,6 +240,21 @@ int lexer(char *filename, Token *token_array, int max_tokens){
                 }else{
                     ungetc(next_byte, file);
                 }
+            }
+
+            if(byte == '"'){
+                index = 0;
+                // check for string literal
+                while((byte = fgetc(file)) != EOF && byte != '"'){
+                    if(index < 256) buffer[index++] = byte;
+                }
+                buffer[index] = '\0';
+                Token tk;
+                tk.type = TOKEN_STRING_LITERAL;
+                tk.value = strdup(buffer);
+                if(token_index < max_tokens) token_array[token_index++] = tk;
+                token_count++;
+                continue;
             }
 
             buffer[index] = '\0';

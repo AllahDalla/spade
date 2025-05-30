@@ -20,27 +20,32 @@ int main(int argc, char *argv[]){
         return 1;
     }
     
+
+    for(int i = 1; i < argc; i++){
+        printf("File: %s \n", argv[i]);
+        printf("=== LEXER OUTPUT ===\n");
+        tokenize_file(argv[i]);
     
-    printf("=== LEXER OUTPUT ===\n");
-    tokenize_file(argv[1]);
+        if(token_count < 1){
+            printf("Error: No tokens found in file <%s>.\n", argv[i]);
+        }
+    
+        printf("\n=== PARSER OUTPUT ===\n");
+        Parser parser = {token_array, 0, token_count};
+        ASTNode *root = parse_variable_declaration(&parser);
+    
+        if(root){
+            printf("Successfully parsed variable declaration!\n");
+            print_AST(root, 0);
+            // Clean up
+            free_AST(root);
+        }else{
+            printf("Failed to parse variable declaration\n");
+        }
+        
+        free_tokens(token_array, token_count);
 
-    if(token_count < 1){
-        printf("Error: No tokens found in file <%s>.\n", argv[1]);
-    }
-
-    printf("\n=== PARSER OUTPUT ===\n");
-    Parser parser = {token_array, 0, token_count};
-    ASTNode *root = parse_variable_declaration(&parser);
-
-    if(root){
-        printf("Successfully parsed variable declaration!\n");
-        print_AST(root, 0);
-        // Clean up
-        free_AST(root);
-    }else{
-        printf("Failed to parse variable declaration\n");
     }
     
-    free_tokens(token_array, token_count);
     return 0;
 }

@@ -59,6 +59,7 @@ enum TokenType{
     TOKEN_SEMICOLON,
     TOKEN_COMMA,
     TOKEN_ARROW,
+    TOKEN_STRING_LITERAL
 };
 
 /**
