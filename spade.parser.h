@@ -67,6 +67,7 @@ ASTNode *parse_equality(Parser *parser);
 ASTNode *parse_comparison(Parser *parser);
 ASTNode *parse_term(Parser *parser);
 ASTNode *parse_factor(Parser *parser);
+ASTNode *parse_exponent(Parser *parser);
 ASTNode *parse_unary(Parser *parser);
 ASTNode *parse_primary(Parser *parser);
 ASTNode *parse_variable_declaration(Parser *parser);

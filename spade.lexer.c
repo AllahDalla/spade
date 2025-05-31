@@ -39,6 +39,7 @@ const KeywordMap operators[] = {
     {"+", TOKEN_PLUS},
     {"-", TOKEN_MINUS},
     {"*", TOKEN_MULTIPLY},
+    {"**", TOKEN_POWER},
     {"/", TOKEN_DIVIDE},
     {"%", TOKEN_MODULO},
     {"==", TOKEN_EQUALS},
@@ -90,6 +91,7 @@ const char *token_type_strings[] = {
     "TOKEN_PLUS",
     "TOKEN_MINUS",
     "TOKEN_MULTIPLY",
+    "TOKEN_POWER",
     "TOKEN_DIVIDE",
     "TOKEN_MODULO",
     "TOKEN_LESS_THAN",
@@ -228,7 +230,8 @@ int lexer(char *filename, Token *token_array, int max_tokens){
                     (byte == '<' && next_byte == '=') || (byte == '>' && next_byte == '=') || 
                     (byte == '&' && next_byte == '&') || (byte == '|' && next_byte == '|') || 
                     (byte == '-' && next_byte == '>') || (byte == '(' && next_byte == ')') ||
-                    (byte == '{' && next_byte == '}') || (byte == '[' && next_byte == ']')){
+                    (byte == '{' && next_byte == '}') || (byte == '[' && next_byte == ']') ||
+                    (byte == '*' && next_byte == '*')){
                     // it's a two character token{
 
                     buffer[index++] = next_byte;

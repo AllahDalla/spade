@@ -284,7 +284,7 @@ ASTNode *parse_term(Parser *parser){
 
 ASTNode *parse_factor(Parser *parser){
 
-    ASTNode *left = parse_unary(parser);
+    ASTNode *left = parse_exponent(parser);
     if(!left){
         return NULL;
     }
@@ -323,6 +323,32 @@ ASTNode *parse_factor(Parser *parser){
         }else{
             break;
         }
+    }
+
+    return left;
+}
+
+ASTNode *parse_exponent(Parser *parser){
+    ASTNode *left = parse_unary(parser);
+    if(!left){
+        return NULL;
+    }
+
+    while(match(parser, TOKEN_POWER)){
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *right = parse_exponent(parser);
+        if(!right){
+            free_AST(left);
+            return NULL;
+        }
+
+        ASTNode *bin_node = malloc(sizeof(ASTNode));
+        bin_node->type = AST_BINARY_OPERATION;
+        bin_node->data.bin_op.op = operator;
+        bin_node->data.bin_op.left = left;
+        bin_node->data.bin_op.right = right;
+        left = bin_node;
+        
     }
 
     return left;
