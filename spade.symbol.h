@@ -13,8 +13,11 @@ typedef struct {
     int count;
 }SymbolTable;
 
+extern SymbolTable global_symbol_table;
+
 int add_symbol(SymbolTable *table, const char *name, enum TokenType type);
 Symbol *lookup_symbol_table(SymbolTable *table, const char *name);
 void free_symbol_table(SymbolTable *table);
+void print_symbol_table(SymbolTable *table);
 
 #endif

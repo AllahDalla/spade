@@ -3,6 +3,10 @@
 #include <string.h>
 #include "spade.lexer.h"
 #include "spade.parser.h"
+#include "spade.symbol.h"
+
+
+SymbolTable global_symbol_table = {0};
 
 
 const char *ast_type_strings[] = {
@@ -450,6 +454,7 @@ ASTNode *parse_variable_declaration(Parser *parser){
     node->type = AST_VARIABLE_DECLARATION; // set the type of the node
     node->data.var_declaration.var_type = token.type; // set the data type of variable in node
     advance(parser); // advance to the next token
+
 
     // check if the next token is an identifier
     token = current_token(parser);

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "spade.lexer.h"
 #include "spade.parser.h"
+#include "spade.symbol.h"
+#include "spade.semantic.h"
 
 #define MAX_TOKENS 1024
 Token token_array[MAX_TOKENS];
@@ -37,14 +39,16 @@ int main(int argc, char *argv[]){
         if(root){
             printf("Successfully parsed variable declaration!\n");
             print_AST(root, 0);
+            analyze_AST(root, &global_symbol_table);
+            print_symbol_table(&global_symbol_table);
             // Clean up
             free_AST(root);
+            free_symbol_table(&global_symbol_table);
         }else{
             printf("Failed to parse variable declaration\n");
         }
         
         free_tokens(token_array, token_count);
-
     }
     
     return 0;
