@@ -118,6 +118,12 @@ const char *token_type_strings[] = {
 
 // Helper functions
 
+/**
+ * Converts a token type enum to its corresponding string representation.
+ * 
+ * @param type The token type to convert to a string
+ * @return A string name representing the given token type, or "UNKNOWN_TOKEN" if invalid
+ */
 const char *get_token_name(enum TokenType type) {
     if (type >= 0 && type < sizeof(token_type_strings) / sizeof(token_type_strings[0])) {
         return token_type_strings[type];
@@ -126,10 +132,21 @@ const char *get_token_name(enum TokenType type) {
 }
 
 
+/**
+ * Prints the details of a single token to the console.
+ * 
+ * @param token The token to be printed, containing its type and value
+ */
 void print_token(Token token) {
     printf("[Token] Value: %s \t Type: %s\n", token.value, get_token_name(token.type));
 }
 
+/**
+ * Determines if an identifier string matches a language keyword.
+ * 
+ * @param identifier The string to check against the keyword list
+ * @return The corresponding TokenType if it's a keyword, TOKEN_IDENTIFIER otherwise
+ */
 int get_keyword_token(char *identifier) {
     int len = sizeof(keywords) / sizeof(keywords[0]);
     for (int i = 0; i < len; i++) {
@@ -140,6 +157,12 @@ int get_keyword_token(char *identifier) {
     return TOKEN_IDENTIFIER; // Not a keyword, so it's an identifier
 }
 
+/**
+ * Determines if a string matches a language operator.
+ * 
+ * @param operator The string to check against the operator list
+ * @return The corresponding TokenType if it's an operator, -1 if not found
+ */
 int get_operator_token(char *operator) {
     int len = sizeof(operators) / sizeof(operators[0]);
     for (int i = 0; i < len; i++) {
@@ -152,6 +175,13 @@ int get_operator_token(char *operator) {
 }
 
 
+/**
+ * Creates a token from an identifier string based on whether it's a word or operator.
+ * 
+ * @param identifier The string value for the token
+ * @param is_word 1 if the identifier is a word (keyword/identifier), 0 if it's an operator
+ * @return A Token structure with the appropriate type and value
+ */
 Token token_type(char *identifier, int is_word){
     Token tk;
     if(is_word){
@@ -165,6 +195,12 @@ Token token_type(char *identifier, int is_word){
     return tk;
 }
 
+/**
+ * Frees memory allocated for an array of tokens.
+ * 
+ * @param token The array of tokens to be freed
+ * @param token_count The number of tokens in the array
+ */
 void free_tokens(Token *token, int token_count){
     for(int i = 0; i < token_count; i++){
         if(token[i].value != NULL){
@@ -175,6 +211,18 @@ void free_tokens(Token *token, int token_count){
 }
 
 
+/**
+ * Performs lexical analysis on a given file and populates a token array.
+ * 
+ * This function reads a source file character by character and converts it into
+ * a sequence of tokens. It handles identifiers, keywords, numbers, operators,
+ * punctuation, and string literals.
+ * 
+ * @param filename The path to the source file to be lexically analyzed
+ * @param token_array A pre-allocated array to store the generated tokens
+ * @param max_tokens The maximum number of tokens that can be stored in the token_array
+ * @return The number of tokens successfully parsed, or 0 if file cannot be opened
+ */
 int lexer(char *filename, Token *token_array, int max_tokens){
     FILE *file = fopen(filename, "rb");
     if(!file){

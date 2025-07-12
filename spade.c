@@ -8,6 +8,14 @@
 Token token_array[MAX_TOKENS];
 int token_count = 0;
 
+/**
+ * Tokenizes a source file and outputs token information for debugging.
+ * 
+ * This function performs lexical analysis on the specified file and prints
+ * each token along with its type. It also displays the total token count.
+ * 
+ * @param filename The path to the source file to be tokenized
+ */
 void tokenize_file(char *filename){
     token_count = lexer(filename, token_array, MAX_TOKENS);
     for (int i = 0; i < token_count; i++)  print_token(token_array[i]);
@@ -15,6 +23,19 @@ void tokenize_file(char *filename){
 }
 
 
+/**
+ * Main entry point of the Spade compiler.
+ * 
+ * This function orchestrates the entire compilation pipeline for each input file:
+ * 1. Lexical analysis (tokenization)
+ * 2. Syntax analysis (parsing to AST)
+ * 3. Semantic analysis (type checking and symbol validation)
+ * 4. Memory cleanup
+ * 
+ * @param argc The number of command-line arguments
+ * @param argv Array of command-line argument strings
+ * @return 0 on success, 1 on usage error
+ */
 int main(int argc, char *argv[]){
     
     if(argc < 2){

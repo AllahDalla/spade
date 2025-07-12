@@ -21,6 +21,13 @@ const char *ast_type_strings[] = {
 };
 
 // Helper functions
+
+/**
+ * Gets the current token from the parser without advancing.
+ * 
+ * @param parser The parser instance containing tokens and position
+ * @return The current token, or an EOF token if at the end
+ */
 Token current_token(Parser *parser) {
     if (parser->current < parser->token_count) {
         return parser->tokens[parser->current];
@@ -29,17 +36,35 @@ Token current_token(Parser *parser) {
     return eof;
 }
 
+/**
+ * Advances the parser to the next token.
+ * 
+ * @param parser The parser instance to advance
+ */
 void advance(Parser *parser) {
     if (parser->current < parser->token_count) {
         parser->current++;
     }
 }
 
+/**
+ * Gets the previous token from the parser.
+ * 
+ * @param parser The parser instance
+ * @return The token at the previous position
+ */
 Token previous_token(Parser *parser) {
     return parser->tokens[parser->current - 1];
 }
 
 
+/**
+ * Checks if the current token matches the expected type and advances if it does.
+ * 
+ * @param parser The parser instance
+ * @param type The expected token type
+ * @return 1 if the token matches and parser advances, 0 otherwise
+ */
 int match(Parser *parser, enum TokenType type) {
     if (current_token(parser).type == type) {
         advance(parser);
@@ -48,14 +73,23 @@ int match(Parser *parser, enum TokenType type) {
     return 0;  // Failed to match
 }
 
-// Check if current token is a type
+/**
+ * Checks if a token type represents a data type.
+ * 
+ * @param type The token type to check
+ * @return 1 if the token represents a data type, 0 otherwise
+ */
 int is_data_type_token(enum TokenType type) {
     return (type == TOKEN_INT || type == TOKEN_STRING || 
             type == TOKEN_BOOL || type == TOKEN_VOID || 
             type == TOKEN_FLOAT || type == TOKEN_DOUBLE || 
             type == TOKEN_LONG);
 }
-// frees variable declarations for now
+/**
+ * Recursively frees memory allocated for an Abstract Syntax Tree node and its children.
+ * 
+ * @param node The AST node to be freed
+ */
 void free_AST(ASTNode *node) {
     if (node == NULL) {
         return;
@@ -118,7 +152,12 @@ void free_AST(ASTNode *node) {
     }
 }
 
-// Helper function to print AST (for debugging)
+/**
+ * Recursively prints an Abstract Syntax Tree for debugging purposes.
+ * 
+ * @param node The AST node to print
+ * @param indent The current indentation level for formatting
+ */
 void print_AST(ASTNode *node, int indent) {
     if (!node) return;
     
@@ -204,6 +243,12 @@ parse_unary (-, !)
 parse_primary (numbers, identifiers, parentheses)
 */
 
+/**
+ * Parses an expression using recursive descent (top-level parsing function).
+ * 
+ * @param parser The parser instance
+ * @return An AST node representing the parsed expression, or NULL on error
+ */
 ASTNode *parse_expression(Parser *parser){
     return parse_equality(parser);
 }
@@ -440,6 +485,16 @@ ASTNode *parse_primary(Parser *parser){
     }
 }
 
+/**
+ * Parses a variable declaration statement.
+ * 
+ * Handles both variable declarations with and without initialization:
+ * - int x;           (declaration only)
+ * - int x = 5 + 3;   (declaration with initialization)
+ * 
+ * @param parser The parser instance
+ * @return An AST node representing the variable declaration, or NULL on error
+ */
 ASTNode *parse_variable_declaration(Parser *parser){
     Token token = current_token(parser);
     
