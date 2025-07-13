@@ -3,6 +3,7 @@
 #include "spade.parser.h"
 #include "spade.symbol.h"
 #include "spade.semantic.h"
+#include "spade.ir.h"
 
 #define MAX_TOKENS 1024
 Token token_array[MAX_TOKENS];
@@ -62,9 +63,18 @@ int main(int argc, char *argv[]){
             print_AST(root, 0);
             analyze_AST(root, &global_symbol_table);
             print_symbol_table(&global_symbol_table);
+
+            // NEW: Generate IR code
+            printf("\n=== IR GENERATION ===\n");
+            IRCode *ir_code = create_ir_code();
+            generate_ir(root, ir_code);
+            emit_instruction(ir_code, IR_HALT);  // End marker
+            print_ir_code(ir_code);
+
             // Clean up
             free_AST(root);
             free_symbol_table(&global_symbol_table);
+            free_ir_code(ir_code);
         }else{
             printf("Failed to parse variable declaration\n");
         }

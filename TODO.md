@@ -7,36 +7,47 @@
 - [x] Semantic analysis with type checking
 - [x] Error detection for type mismatches, undeclared variables, redeclarations
 - [x] Test cases for semantic error validation
+- [x] Stack-based IR generation system
+- [x] IR instruction set design (PUSH_CONST, PUSH_VAR, ADD, etc.)
+- [x] IR code generation with post-order AST traversal
+- [x] Integration of IR generation into compiler pipeline
+- [x] Comprehensive documentation for all functions
 
-## 🔄 Next: Stack-Based IR Generation
+## 🔄 Next: Virtual Machine Implementation
 
-### Phase 1: Core IR Infrastructure
-- [ ] Design instruction set (PUSH_CONST, PUSH_VAR, ADD, SUB, MUL, etc.)
-- [ ] Define instruction structure (opcode + optional operand)  
-- [ ] Create IR instruction enum and data structures
-- [ ] Implement virtual stack for runtime evaluation
+### Phase 1: Virtual Machine Core
+- [ ] Create VM data structures (stack, variables, program counter)
+- [ ] Implement stack operations (push, pop with overflow/underflow checks)
+- [ ] Implement variable storage and retrieval
+- [ ] Create instruction dispatcher/interpreter loop
 
-### Phase 2: Code Generation
-- [ ] Create `generate_IR(ASTNode* ast)` function
-- [ ] Implement post-order AST traversal for expression IR
-- [ ] Handle variable declarations (STORE_VAR instructions)
-- [ ] Handle binary operations (arithmetic, comparison, logical)
-- [ ] Connect IR generation after semantic analysis
+### Phase 2: Instruction Execution
+- [ ] Implement arithmetic operations (ADD, SUB, MUL, DIV, MOD, POW)
+- [ ] Implement comparison operations (EQ, NE, LT, GT, LE, GE)
+- [ ] Implement logical operations (AND, OR, NOT)
+- [ ] Implement unary operations (NEG, NOT)
+- [ ] Add execution tracing and debugging output
 
-### Phase 3: Testing & Integration
-- [ ] Test IR generation with existing test cases
-- [ ] Debug and validate instruction sequences
-- [ ] Add IR output to compiler pipeline
-- [ ] Create IR execution/interpretation capability
+### Phase 3: Testing & Validation
+- [ ] Test VM with all existing IR test cases
+- [ ] Verify correct expression evaluation results
+- [ ] Add VM execution to main compiler pipeline
+- [ ] Create end-to-end execution tests
 
-## 🚀 Future Features
-- [ ] Function declarations and calls
-- [ ] Variable scoping (block scope, function scope)
-- [ ] Control flow (if/else, loops) 
-- [ ] Final code generation (assembly/machine code)
+## 🚀 Future Language Features
+- [ ] Function declarations and calls (CALL, RET instructions)
+- [ ] Variable scoping (stack frames, local variables)
+- [ ] Control flow statements (if/else, loops with JUMP instructions)
+- [ ] Arrays and data structures
+- [ ] Standard library functions (print, input)
+- [ ] Error handling and exceptions
 
-## 📝 Implementation Strategy
-**Stack-based IR approach**: Use virtual stack machine with RPN-style instruction sequences
-- Expression `a + b * c` becomes: `PUSH a, PUSH b, PUSH c, MUL, ADD`
-- Variable assignment `x = result` becomes: `STORE_VAR x`
-- Natural mapping from expression trees to stack operations
+## 📝 Current Architecture
+**Complete Interpreter Pipeline**:
+1. **Lexer** → Tokens
+2. **Parser** → AST  
+3. **Semantic Analysis** → Type checking & validation
+4. **IR Generation** → Stack-based bytecode ✅
+5. **Virtual Machine** → Execution ⏳
+
+**IR Instruction Set**: Stack-based with operations for constants, variables, arithmetic, comparison, and logical operations
