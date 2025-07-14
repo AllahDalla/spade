@@ -1,10 +1,10 @@
 # Spade Programming Language Compiler
 
-A complete compiler implementation for the Spade programming language, featuring lexical analysis, parsing, semantic analysis, and stack-based intermediate representation (IR) generation.
+A complete compiler implementation for the Spade programming language, featuring lexical analysis, parsing, semantic analysis, IR generation, and a fully functional virtual machine for bytecode execution.
 
 ## 🎯 Project Overview
 
-Spade is a statically-typed programming language with C-like syntax. This repository contains a full compiler implementation built from scratch in C, demonstrating all major phases of compilation from source code to executable bytecode.
+Spade is a statically-typed programming language with C-like syntax. This repository contains a full compiler implementation built from scratch in C, demonstrating all major phases of compilation from source code to execution.
 
 ### Key Features
 
@@ -12,9 +12,10 @@ Spade is a statically-typed programming language with C-like syntax. This reposi
 - ✅ **Recursive Descent Parser** - Builds Abstract Syntax Trees with proper operator precedence  
 - ✅ **Semantic Analysis** - Type checking, variable validation, and error reporting
 - ✅ **IR Generation** - Stack-based intermediate representation with post-order traversal
+- ✅ **Virtual Machine** - Full bytecode interpreter with stack-based execution
 - ✅ **Comprehensive Testing** - Extensive test suite for all compiler phases
 - ✅ **Memory Management** - Proper allocation and cleanup throughout the pipeline
-- 🔄 **Virtual Machine** - Bytecode interpreter (in development)
+- ✅ **Safety Features** - Overflow detection, bounds checking, and robust error handling
 
 ## 🚀 Current Language Support
 
@@ -66,7 +67,7 @@ Source Code (.sp)
                           ↓
 ┌─────────────┐    ┌──────────────┐
 │ IR Generator│ →  │ Virtual      │
-│ (Bytecode)  │    │ Machine      │ [In Development]
+│ (Bytecode)  │    │ Machine      │
 └─────────────┘    └──────────────┘
      ↓                     ↓
 Stack-based IR         Execution
@@ -104,6 +105,13 @@ Instructions           Results
    - Bytecode optimization
    - Virtual machine target code
 
+6. **Virtual Machine** (`spade.vm.c/h`)
+   - Stack-based bytecode execution
+   - Variable storage and retrieval
+   - Arithmetic and logical operations
+   - Safe power operations with overflow detection
+   - Memory management and error handling
+
 ## 🛠️ Building and Running
 
 ### Prerequisites
@@ -137,44 +145,79 @@ cmake -B build && cmake --build build
 ### Sample Output
 
 ```
-File: test_scripts/variable_declaration/expression.sp
+File: test_scripts/variable_declaration/multiple.sp
 === LEXER OUTPUT ===
 [Token] Value: int       Type: TOKEN_INT
-[Token] Value: result    Type: TOKEN_IDENTIFIER
+[Token] Value: x         Type: TOKEN_IDENTIFIER
 [Token] Value: =         Type: TOKEN_ASSIGN
 [Token] Value: 10        Type: TOKEN_NUMBER
-[Token] Value: +         Type: TOKEN_PLUS
-[Token] Value: 5         Type: TOKEN_NUMBER
-[Token] Value: *         Type: TOKEN_MULTIPLY
-[Token] Value: 2         Type: TOKEN_NUMBER
 [Token] Value: ;         Type: TOKEN_SEMICOLON
-Token Count: 9
+...
 
 === PARSER OUTPUT ===
-Successfully parsed variable declaration!
-VAR_DECL: type=TOKEN_INT, name='result'
-  value:
-    BINARY_OPERATION: op=TOKEN_PLUS
-      left:
-        NUMBER: 10
-      right:
-        BINARY_OPERATION: op=TOKEN_MULTIPLY
-          left:
-            NUMBER: 5
-          right:
-            NUMBER: 2
+Successfully parsed program with 5 statements!
+PROGRAM: 5 statements
+  VAR_DECL: type=TOKEN_INT, name='x'
+    value:
+      NUMBER: 10
+  VAR_DECL: type=TOKEN_BOOL, name='flag'
+    value:
+      BOOLEAN: true
+  VAR_DECL: type=TOKEN_INT, name='result'
+    value:
+      BINARY_OPERATION: op=TOKEN_PLUS
+        left:
+          NUMBER: 5
+        right:
+          BINARY_OPERATION: op=TOKEN_MULTIPLY
+            left:
+              NUMBER: 3
+            right:
+              NUMBER: 2
+...
 
 Symbol Table:
+x: TOKEN_INT
+flag: TOKEN_BOOL
 result: TOKEN_INT
+comparison: TOKEN_BOOL
+power: TOKEN_INT
 
 === IR GENERATION ===
   0: PUSH_CONST 10
-  1: PUSH_CONST 5
-  2: PUSH_CONST 2
-  3: MUL
-  4: ADD
-  5: STORE_VAR result
-  6: HALT
+  1: STORE_VAR x
+  2: PUSH_CONST 1
+  3: STORE_VAR flag
+  4: PUSH_CONST 5
+  5: PUSH_CONST 3
+  6: PUSH_CONST 2
+  7: MUL
+  8: ADD
+  9: STORE_VAR result
+ 10: PUSH_CONST 15
+ 11: PUSH_CONST 10
+ 12: GT
+ 13: STORE_VAR comparison
+ 14: PUSH_CONST 2
+ 15: PUSH_CONST 3
+ 16: POW
+ 17: STORE_VAR power
+ 18: HALT
+
+=== VM EXECUTION ===
+Program executed successfully!
+Virtual Machine State:
+Stack Capacity: 100
+Stack Count: -1
+Stack Contents:
+Variable Capacity: 10
+Variable Count: 4
+Variable Contents:
+        1. x = 10
+        2. flag = 1
+        3. result = 11
+        4. comparison = 1
+        5. power = 8
 ```
 
 ## 📁 Project Structure
@@ -194,6 +237,7 @@ spade/
 ├── spade.symbol.c/h        # Symbol table management
 ├── spade.semantic.c/h      # Semantic analysis and type checking
 ├── spade.ir.c/h           # IR generation
+├── spade.vm.c/h           # Virtual machine implementation
 │
 └── test_scripts/           # Test cases
     ├── variable_declaration/   # Basic variable tests
@@ -222,6 +266,12 @@ The project includes comprehensive test suites:
    - Comparison and logical operations
    - Power operations with associativity
 
+4. **Virtual Machine Tests**
+   - Stack-based execution validation
+   - Variable storage and retrieval
+   - Arithmetic and comparison operations
+   - Safe power operations with overflow detection
+
 ### Running Tests
 
 ```bash
@@ -242,12 +292,11 @@ The project includes comprehensive test suites:
 - Full recursive descent parser with proper precedence
 - Comprehensive semantic analysis and type checking
 - Stack-based IR generation with bytecode output
+- **Virtual Machine**: Full bytecode interpreter with stack-based execution
+- **Execution Engine**: Complete stack-based evaluation of IR instructions
+- **Safety Features**: Overflow detection, bounds checking, and error handling
 - Memory management and error handling
 - Extensive documentation and test coverage
-
-### 🔄 In Development
-- **Virtual Machine**: Bytecode interpreter for IR execution
-- **Execution Engine**: Stack-based evaluation of generated instructions
 
 ### 🚀 Planned Features
 - **Functions**: Declaration, calls, parameters, return values
@@ -293,6 +342,15 @@ This is an educational project demonstrating compiler construction principles. T
 - Token arrays are cleaned up with `free_tokens()`
 - Symbol tables are cleared with `free_symbol_table()`
 - IR code structures are freed with `free_ir_code()`
+- Virtual machine components are freed with `free_VM()`
+
+### Virtual Machine Features
+- **Stack-based execution**: 100-element runtime stack with overflow protection
+- **Variable storage**: Dynamic variable table with automatic resizing
+- **19 IR instructions**: Complete arithmetic, comparison, logical, and control operations
+- **Safe power operations**: Integer overflow detection and bounds checking
+- **Error handling**: Comprehensive error reporting with detailed diagnostics
+- **Memory safety**: Proper allocation/deallocation with no memory leaks
 
 ## 📄 License
 
@@ -300,4 +358,4 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Spade Compiler** - A complete implementation of a programming language compiler, demonstrating professional software engineering practices and compiler construction principles.
+**Spade Compiler** - A complete implementation of a programming language compiler with virtual machine, demonstrating professional software engineering practices and full compilation pipeline from source code to execution.
