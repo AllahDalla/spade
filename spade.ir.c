@@ -84,6 +84,17 @@ void emit_instruction_var(IRCode *code, IROpcode opcode, const char *var_name) {
     code->count++;
 }
 
+/**
+ * Emits an IR instruction with a string literal operand.
+ * 
+ * Adds an instruction with a string literal to the IR code sequence.
+ * The string literal is duplicated and stored in the instruction for
+ * later processing by the virtual machine.
+ * 
+ * @param code The IR code container to add the instruction to
+ * @param opcode The instruction opcode (e.g., IR_PUSH_STRING_LIT)
+ * @param string_lit The string literal to associate with the instruction
+ */
 void emit_instruction_string_lit(IRCode *code, IROpcode opcode, const char *string_lit) {
     if (code->count >= code->capacity) {
         code->capacity *= 2;

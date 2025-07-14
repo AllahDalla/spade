@@ -256,6 +256,14 @@ void free_VM(VirtualMachine *vm){
     vm->machine_state = HALTED;
 }
 
+/**
+ * Prints all variables currently stored in the virtual machine.
+ * 
+ * Displays each variable's name and value in a formatted list.
+ * Used for debugging and VM state inspection.
+ * 
+ * @param vm Pointer to the virtual machine
+ */
 void peek_variables(VirtualMachine *vm){
     for(int i = 0; i <= vm->variable_count; i++){
         printf("        %d. %s = %d\n", i + 1, vm->variables[i].name, vm->variables[i].value);
@@ -263,6 +271,17 @@ void peek_variables(VirtualMachine *vm){
 }
 
 
+/**
+ * Stores a string in the VM's string pool and pushes its index onto the stack.
+ * 
+ * Adds a string to the string pool, automatically expanding capacity if needed.
+ * The string is duplicated and stored, then its index is pushed onto the stack.
+ * This allows the VM to handle string literals efficiently.
+ * 
+ * @param vm Pointer to the virtual machine
+ * @param string The string to store in the pool
+ * @return VM_SUCCESS on success, VM_OUT_OF_MEMORY on allocation failure
+ */
 VMResult store_string(VirtualMachine *vm, char *string){
     if(vm->string_pool_count >= vm->string_pool_capacity - 1){
         vm->string_pool_capacity *= 2;
@@ -279,6 +298,18 @@ VMResult store_string(VirtualMachine *vm, char *string){
     return VM_SUCCESS;
 }  
 
+/**
+ * Loads a string from the VM's string pool by index.
+ * 
+ * Retrieves a string from the string pool using its index. The string pointer
+ * is returned through the output parameter. Performs bounds checking to ensure
+ * the index is valid.
+ * 
+ * @param vm Pointer to the virtual machine
+ * @param index Index of the string to retrieve from the pool
+ * @param string Pointer to store the retrieved string
+ * @return VM_SUCCESS on success, VM_INDEX_OUT_OF_BOUNDS on invalid index
+ */
 VMResult load_string(VirtualMachine *vm, int index, char **string){
     if(index >= vm->string_pool_count || index < 0){
         printf("Error: String stack index out of bounds\n");
@@ -289,6 +320,14 @@ VMResult load_string(VirtualMachine *vm, int index, char **string){
     return VM_SUCCESS;
 }
 
+/**
+ * Prints all strings currently stored in the VM's string pool.
+ * 
+ * Displays each string with its index in a formatted list.
+ * Used for debugging and VM state inspection.
+ * 
+ * @param vm Pointer to the virtual machine
+ */
 void peek_string_pool(VirtualMachine *vm){
     for(int i = 0; i < vm->string_pool_count; i++){
         printf("        %d. %s\n", i + 1, vm->string_pool[i]);
