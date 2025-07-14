@@ -89,8 +89,21 @@ VirtualMachine createVirtualMachine(){
         vm.machine_state = ERROR;
         return vm;
     }
+
     vm.variable_count = -1;
     vm.variable_capacity = 10;
+    
+    vm.string_pool = malloc(sizeof(char *) * 50);
+    if (!vm.string_pool) {
+        printf("Error: Failed to allocate string pool memory\n");
+        free(vm.stack);
+        free(vm.variables);
+        vm.machine_state = ERROR;
+        return vm;
+    }
+
+    vm.string_pool_count = 0;
+    vm.string_pool_capacity = 50;
 
     vm.program_counter = -1;
     vm.machine_state = RUNNING;
@@ -112,6 +125,10 @@ void print_VM_state(VirtualMachine *vm){
     printf("Variable Count: %d\n", vm->variable_count);
     printf("Variable Contents: \n");
     peek_variables(vm);
+    printf("String Pool Capacity: %d\n", vm->string_pool_capacity);
+    printf("String Pool Count: %d\n", vm->string_pool_count);
+    printf("String Pool Contents: \n");
+    peek_string_pool(vm);
 }
 
 /**
@@ -211,6 +228,16 @@ void free_VM(VirtualMachine *vm){
         free(vm->stack);
         vm->stack = NULL;
     }
+
+    if(vm->string_pool){
+        for(int i = 0; i < vm->string_pool_count; i++){
+            if(vm->string_pool[i]){
+                free(vm->string_pool[i]);
+            }
+        }
+        free(vm->string_pool);
+        vm->string_pool = NULL;
+    }
     
     if (vm->variables) {
         // Free variable names
@@ -232,6 +259,39 @@ void free_VM(VirtualMachine *vm){
 void peek_variables(VirtualMachine *vm){
     for(int i = 0; i <= vm->variable_count; i++){
         printf("        %d. %s = %d\n", i + 1, vm->variables[i].name, vm->variables[i].value);
+    }
+}
+
+
+VMResult store_string(VirtualMachine *vm, char *string){
+    if(vm->string_pool_count >= vm->string_pool_capacity - 1){
+        vm->string_pool_capacity *= 2;
+        char **new_pool = realloc(vm->string_pool, sizeof(char *) * vm->string_pool_capacity);
+        if (!new_pool) {
+            return VM_OUT_OF_MEMORY;
+        }
+        vm->string_pool = new_pool;
+    }
+
+    vm->string_pool[vm->string_pool_count] = strdup(string);
+    push_stack(vm, vm->string_pool_count);
+    vm->string_pool_count++;
+    return VM_SUCCESS;
+}  
+
+VMResult load_string(VirtualMachine *vm, int index, char **string){
+    if(index >= vm->string_pool_count || index < 0){
+        printf("Error: String stack index out of bounds\n");
+        return VM_INDEX_OUT_OF_BOUNDS;
+    }
+
+    *string = vm->string_pool[index];
+    return VM_SUCCESS;
+}
+
+void peek_string_pool(VirtualMachine *vm){
+    for(int i = 0; i < vm->string_pool_count; i++){
+        printf("        %d. %s\n", i + 1, vm->string_pool[i]);
     }
 }
 
@@ -258,6 +318,15 @@ VMResult execute_ir_code(VirtualMachine *vm, IRCode *ir_code){
                     return VM_STACK_OVERFLOW;
                 }
 
+                break;
+                
+            case IR_PUSH_STRING_LIT:
+                // Push string index onto stack
+                if(store_string(vm, instr->operand.string_lit) != VM_SUCCESS){
+                    printf("Error: Failed to store string %s in Virtual Machine\n", instr->operand.string_lit);
+                    vm->machine_state = ERROR;
+                    return VM_OUT_OF_MEMORY;
+                }
                 break;
                 
             case IR_PUSH_VAR:

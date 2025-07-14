@@ -4,9 +4,12 @@
 #include "spade.lexer.h"
 #include "spade.parser.h"
 
+
+
 typedef enum {
     IR_PUSH_CONST,      // Push constant value
     IR_PUSH_VAR,        // Push variable value
+    IR_PUSH_STRING_LIT, // Push string literal
     IR_STORE_VAR,       // Store top of stack to variable
     IR_ADD,             // Pop two, add, push result
     IR_SUB,             // Pop two, subtract, push result
@@ -30,8 +33,9 @@ typedef enum {
 typedef struct {
     IROpcode opcode;
     union {
-        int int_value;      // For constants
+        int int_value;      // For constants and string indices
         char *var_name;     // For variable operations
+        char *string_lit;   // For string literals
     } operand;
 } IRInstruction;
 
@@ -46,6 +50,7 @@ IRCode *create_ir_code(void);
 void emit_instruction(IRCode *code, IROpcode opcode);
 void emit_instruction_int(IRCode *code, IROpcode opcode, int value);
 void emit_instruction_var(IRCode *code, IROpcode opcode, const char *var_name);
+void emit_instruction_string_lit(IRCode *code, IROpcode opcode, const char *string_lit);
 void generate_ir(ASTNode *ast, IRCode *code);
 void print_ir_code(IRCode *code);
 void free_ir_code(IRCode *code);

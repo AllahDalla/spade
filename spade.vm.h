@@ -13,6 +13,7 @@ typedef enum {
     VM_SUCCESS,
     VM_STACK_OVERFLOW,
     VM_STACK_UNDERFLOW,
+    VM_INDEX_OUT_OF_BOUNDS,
     VM_VARIABLE_NOT_FOUND,
     VM_OUT_OF_MEMORY,
     VM_DIVISION_BY_ZERO,
@@ -29,6 +30,10 @@ typedef struct {
     int *stack;
     int stack_count;
     int stack_capacity;
+
+    char **string_pool;
+    int string_pool_count;
+    int string_pool_capacity;
 
     Variable *variables;
     int variable_count;
@@ -50,6 +55,10 @@ void peek_stack(VirtualMachine *vm);
 VMResult store_variable(VirtualMachine *vm, char *name, int value);
 VMResult load_variable(VirtualMachine *vm, char *name);
 void peek_variables(VirtualMachine *vm);
+
+VMResult store_string(VirtualMachine *vm, char *string);
+VMResult load_string(VirtualMachine *vm, int index, char **string);
+void peek_string_pool(VirtualMachine *vm);
 
 VMResult execute_ir_code(VirtualMachine *vm, IRCode *ir_code);
 

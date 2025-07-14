@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "spade.ir.h"
+#include "spade.vm.h"
 
 /**
  * Creates and initializes a new IR code container.
@@ -83,6 +84,19 @@ void emit_instruction_var(IRCode *code, IROpcode opcode, const char *var_name) {
     code->count++;
 }
 
+void emit_instruction_string_lit(IRCode *code, IROpcode opcode, const char *string_lit) {
+    if (code->count >= code->capacity) {
+        code->capacity *= 2;
+        code->instructions = realloc(code->instructions,
+                                   sizeof(IRInstruction) * code->capacity);
+    }
+
+    code->instructions[code->count].opcode = opcode;
+    code->instructions[code->count].operand.string_lit = strdup(string_lit);
+    code->count++;
+}
+
+
 /**
  * Recursively generates IR code from an Abstract Syntax Tree.
  * 
@@ -92,6 +106,7 @@ void emit_instruction_var(IRCode *code, IROpcode opcode, const char *var_name) {
  * 
  * @param ast The AST node to generate IR code for
  * @param code The IR code container to emit instructions to
+ * @param vm The virtual machine for string pool management
  */
 void generate_ir(ASTNode *ast, IRCode *code) {
     if (!ast) return;
@@ -161,6 +176,12 @@ void generate_ir(ASTNode *ast, IRCode *code) {
                     printf("Unknown unary operator in IR generation\n");
             }
             break;
+
+        case AST_STRING_LITERAL: {
+            // Add string to pool and emit index
+            emit_instruction_string_lit(code, IR_PUSH_STRING_LIT, ast->data.string_lit.value);
+            break;
+        }
             
         default:
             printf("Unknown AST node type in IR generation\n");
@@ -184,6 +205,7 @@ void print_ir_code(IRCode *code) {
         switch (instr->opcode) {
             case IR_PUSH_CONST: printf("PUSH_CONST %d\n", instr->operand.int_value); break;
             case IR_PUSH_VAR:   printf("PUSH_VAR %s\n", instr->operand.var_name); break;
+            case IR_PUSH_STRING_LIT: printf("PUSH_STRING_LIT \"%s\"\n", instr->operand.string_lit); break;
             case IR_STORE_VAR:  printf("STORE_VAR %s\n", instr->operand.var_name); break;
             case IR_ADD:        printf("ADD\n"); break;
             case IR_SUB:        printf("SUB\n"); break;
@@ -217,12 +239,17 @@ void print_ir_code(IRCode *code) {
 void free_ir_code(IRCode *code) {
     if(!code) return;
 
-    // Free allocated variable names in instructions
+    // Free allocated strings in instructions
     for(int i = 0; i < code->count; i++){
         IRInstruction *instr = &code->instructions[i];
         if(instr->opcode == IR_PUSH_VAR || instr->opcode == IR_STORE_VAR){
             if(instr->operand.var_name != NULL){
                 free(instr->operand.var_name);
+            }
+        }
+        else if(instr->opcode == IR_PUSH_STRING_LIT){
+            if(instr->operand.string_lit != NULL){
+                free(instr->operand.string_lit);
             }
         }
     }

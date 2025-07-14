@@ -316,6 +316,67 @@ This is an educational project demonstrating compiler construction principles. T
 - **Error Handling**: Descriptive error messages with context
 - **Testing**: Comprehensive test coverage for all features
 
+### Commit Message Format
+
+Please use the following format for commit messages:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, etc.)
+- `refactor`: Code refactoring
+- `test`: Adding or modifying tests
+- `build`: Build system changes
+- `ci`: CI configuration changes
+
+**Scopes**:
+- `lexer`: Lexical analysis
+- `parser`: Syntax analysis
+- `semantic`: Semantic analysis
+- `ir`: IR generation
+- `vm`: Virtual machine
+- `strings`: String operations
+- `memory`: Memory management
+- `tests`: Test suite
+
+**Examples**:
+```
+feat(strings): implement string literal support with VM string pool
+
+Added IR_PUSH_STRING_LIT instruction and VM string pool management.
+Strings are stored in IR and copied to VM pool during execution.
+
+- Add emit_instruction_string_lit() function
+- Implement VM string pool with store_string() and load_string()
+- Add proper memory cleanup for string literals
+- Update print_ir_code() to display string literals correctly
+
+Closes #123
+```
+
+```
+fix(vm): correct string pool bounds checking in peek_string_pool
+
+Fixed off-by-one error in loop condition that could cause buffer overflow.
+```
+
+```
+docs(improvements): add string literal implementation documentation
+
+Created improvements/string_literal_implementation.md with detailed
+documentation of the string literal feature including architecture,
+current state, and areas for improvement.
+```
+
 ## 📚 Technical Implementation Details
 
 ### Operator Precedence (Highest to Lowest)
@@ -330,6 +391,7 @@ This is an educational project demonstrating compiler construction principles. T
 
 ### IR Instruction Set
 - **Stack Operations**: `PUSH_CONST`, `PUSH_VAR`, `STORE_VAR`
+- **String Operations**: `PUSH_STRING_LIT` (string literal support)
 - **Arithmetic**: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `POW`
 - **Comparison**: `EQ`, `NE`, `LT`, `GT`, `LE`, `GE`
 - **Logical**: `AND`, `OR`, `NOT`
@@ -347,7 +409,8 @@ This is an educational project demonstrating compiler construction principles. T
 ### Virtual Machine Features
 - **Stack-based execution**: 100-element runtime stack with overflow protection
 - **Variable storage**: Dynamic variable table with automatic resizing
-- **19 IR instructions**: Complete arithmetic, comparison, logical, and control operations
+- **String pool**: Efficient string literal storage with 50-string initial capacity
+- **20 IR instructions**: Complete arithmetic, comparison, logical, string, and control operations
 - **Safe power operations**: Integer overflow detection and bounds checking
 - **Error handling**: Comprehensive error reporting with detailed diagnostics
 - **Memory safety**: Proper allocation/deallocation with no memory leaks

@@ -66,16 +66,16 @@ int main(int argc, char *argv[]){
             analyze_AST(root, &global_symbol_table);
             print_symbol_table(&global_symbol_table);
 
+            // NEW: Execute IR code on Virtual Machine
+            printf("\n=== VM EXECUTION ===\n");
+            VirtualMachine vm = createVirtualMachine();
+            
             // NEW: Generate IR code
             printf("\n=== IR GENERATION ===\n");
             IRCode *ir_code = create_ir_code();
             generate_ir(root, ir_code);
             emit_instruction(ir_code, IR_HALT);  // End marker
             print_ir_code(ir_code);
-
-            // NEW: Execute IR code on Virtual Machine
-            printf("\n=== VM EXECUTION ===\n");
-            VirtualMachine vm = createVirtualMachine();
             if (vm.machine_state == ERROR) {
                 printf("Error: Failed to create virtual machine\n");
             } else {
