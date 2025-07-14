@@ -99,6 +99,14 @@ void analyze_AST(ASTNode *tree, SymbolTable *symbol_table){
     }
 
     switch(tree->type){
+        case AST_PROGRAM: {
+            // Analyze all statements in the program
+            for(int i = 0; i < tree->data.program.statement_count; i++){
+                analyze_AST(tree->data.program.statements[i], symbol_table);
+            }
+            break;
+        }
+        
         case AST_VARIABLE_DECLARATION:{
             // Check for redeclaration
             if(!add_symbol(symbol_table, tree->data.var_declaration.name , tree->data.var_declaration.var_type)){

@@ -16,6 +16,12 @@
     <ClCompile Include="C:\Users\Temp\Documents\Codebases\compiler\spade\spade.semantic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\Temp\Documents\Codebases\compiler\spade\spade.ir.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Temp\Documents\Codebases\compiler\spade\spade.vm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\Temp\Documents\Codebases\compiler\spade\CMakeLists.txt" />

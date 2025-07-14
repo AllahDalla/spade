@@ -97,6 +97,14 @@ void generate_ir(ASTNode *ast, IRCode *code) {
     if (!ast) return;
     
     switch (ast->type) {
+        case AST_PROGRAM: {
+            // Generate IR for all statements in the program
+            for(int i = 0; i < ast->data.program.statement_count; i++){
+                generate_ir(ast->data.program.statements[i], code);
+            }
+            break;
+        }
+        
         case AST_NUMBER:
             emit_instruction_int(code, IR_PUSH_CONST, ast->data.number.value);
             break;

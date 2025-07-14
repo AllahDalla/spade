@@ -4,6 +4,7 @@
 #include "spade.lexer.h"
 
 typedef enum {
+    AST_PROGRAM,              // Container for multiple statements
     AST_VARIABLE_DECLARATION,
     AST_NUMBER,
     AST_IDENTIFIER,
@@ -17,6 +18,12 @@ typedef enum {
 typedef struct ASTNode {
     ASTNodeType type;
     union {
+        struct {
+            struct ASTNode **statements;  // Array of statement pointers
+            int statement_count;          // Number of statements
+            int capacity;                 // Allocated capacity
+        } program;
+        
         struct {
             enum TokenType var_type;    // TOKEN_INT, TOKEN_STRING, etc.
             char *name;                 // Variable name
@@ -62,6 +69,8 @@ typedef struct {
 
 void print_AST(ASTNode *node, int indent);
 void free_AST(ASTNode *node);
+ASTNode *parse_program(Parser *parser);
+ASTNode *parse_statement(Parser *parser);
 ASTNode *parse_expression(Parser *parser);
 ASTNode *parse_equality(Parser *parser);
 ASTNode *parse_comparison(Parser *parser);

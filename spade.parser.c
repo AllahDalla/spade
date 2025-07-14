@@ -10,6 +10,7 @@ SymbolTable global_symbol_table = {0};
 
 
 const char *ast_type_strings[] = {
+    "AST_PROGRAM",
     "AST_VARIABLE_DECLARATION",
     "AST_NUMBER",
     "AST_IDENTIFIER",
@@ -95,6 +96,14 @@ void free_AST(ASTNode *node) {
         return;
     }else{
         switch(node->type){
+            case AST_PROGRAM: {
+                for(int i = 0; i < node->data.program.statement_count; i++){
+                    free_AST(node->data.program.statements[i]);
+                }
+                free(node->data.program.statements);
+                break;
+            }
+            
             case AST_VARIABLE_DECLARATION:
                 if(node->data.var_declaration.name != NULL){
                     free(node->data.var_declaration.name);
@@ -165,6 +174,13 @@ void print_AST(ASTNode *node, int indent) {
     for (int i = 0; i < indent; i++) printf("  ");
     
     switch (node->type) {
+        case AST_PROGRAM:
+            printf("PROGRAM: %d statements\n", node->data.program.statement_count);
+            for (int i = 0; i < node->data.program.statement_count; i++) {
+                print_AST(node->data.program.statements[i], indent + 1);
+            }
+            break;
+            
         case AST_VARIABLE_DECLARATION:
             printf("VAR_DECL: type=%s, name='%s'\n", 
                    get_token_name(node->data.var_declaration.var_type),
@@ -242,6 +258,71 @@ parse_factor (*, /, %)
 parse_unary (-, !)
 parse_primary (numbers, identifiers, parentheses)
 */
+
+/**
+ * Parses a complete program consisting of multiple statements.
+ * 
+ * Continues parsing statements until end-of-file is reached. Creates a program
+ * AST node that contains all parsed statements as children.
+ * 
+ * @param parser The parser instance
+ * @return An AST node representing the complete program, or NULL on error
+ */
+ASTNode *parse_program(Parser *parser) {
+    ASTNode *program = malloc(sizeof(ASTNode));
+    program->type = AST_PROGRAM;
+    program->data.program.capacity = 10;
+    program->data.program.statement_count = 0;
+    program->data.program.statements = malloc(sizeof(ASTNode*) * program->data.program.capacity);
+    
+    // Parse statements until end of file
+    while (current_token(parser).type != -1) {  // -1 is EOF token
+        ASTNode *stmt = parse_statement(parser);
+        if (!stmt) {
+            printf("Error parsing statement\n");
+            free_AST(program);
+            return NULL;
+        }
+        
+        // Resize array if needed
+        if (program->data.program.statement_count >= program->data.program.capacity) {
+            program->data.program.capacity *= 2;
+            program->data.program.statements = realloc(program->data.program.statements, 
+                sizeof(ASTNode*) * program->data.program.capacity);
+        }
+        
+        program->data.program.statements[program->data.program.statement_count++] = stmt;
+    }
+    
+    return program;
+}
+
+/**
+ * Determines the type of statement and delegates to the appropriate parser.
+ * 
+ * Analyzes the current token to determine what kind of statement is being parsed
+ * and calls the corresponding parsing function. Currently supports variable
+ * declarations, with framework for adding more statement types.
+ * 
+ * @param parser The parser instance
+ * @return An AST node representing the parsed statement, or NULL on error
+ */
+ASTNode *parse_statement(Parser *parser) {
+    Token token = current_token(parser);
+    
+    // Variable declaration: int, bool, string, etc.
+    if (is_data_type_token(token.type)) {
+        return parse_variable_declaration(parser);
+    }
+    
+    // Future: Add more statement types
+    // if (token.type == TOKEN_IF) return parse_if_statement(parser);
+    // if (token.type == TOKEN_WHILE) return parse_while_statement(parser);
+    // if (token.type == TOKEN_IDENTIFIER) return parse_assignment_or_call(parser);
+    
+    printf("Error: Unknown statement starting with %s\n", token.value);
+    return NULL;
+}
 
 /**
  * Parses an expression using recursive descent (top-level parsing function).

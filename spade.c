@@ -4,6 +4,7 @@
 #include "spade.symbol.h"
 #include "spade.semantic.h"
 #include "spade.ir.h"
+#include "spade.vm.h"
 
 #define MAX_TOKENS 1024
 Token token_array[MAX_TOKENS];
@@ -56,10 +57,11 @@ int main(int argc, char *argv[]){
     
         printf("\n=== PARSER OUTPUT ===\n");
         Parser parser = {token_array, 0, token_count};
-        ASTNode *root = parse_variable_declaration(&parser);
+        ASTNode *root = parse_program(&parser);
     
         if(root){
-            printf("Successfully parsed variable declaration!\n");
+            printf("Successfully parsed program with %d statements!\n", 
+                   root->data.program.statement_count);
             print_AST(root, 0);
             analyze_AST(root, &global_symbol_table);
             print_symbol_table(&global_symbol_table);
@@ -71,12 +73,28 @@ int main(int argc, char *argv[]){
             emit_instruction(ir_code, IR_HALT);  // End marker
             print_ir_code(ir_code);
 
+            // NEW: Execute IR code on Virtual Machine
+            printf("\n=== VM EXECUTION ===\n");
+            VirtualMachine vm = createVirtualMachine();
+            if (vm.machine_state == ERROR) {
+                printf("Error: Failed to create virtual machine\n");
+            } else {
+                VMResult result = execute_ir_code(&vm, ir_code);
+                if (result == VM_SUCCESS) {
+                    printf("Program executed successfully!\n");
+                    print_VM_state(&vm);
+                } else {
+                    printf("Error executing program: %d\n", result);
+                }
+                free_VM(&vm);
+            }
+
             // Clean up
             free_AST(root);
             free_symbol_table(&global_symbol_table);
             free_ir_code(ir_code);
         }else{
-            printf("Failed to parse variable declaration\n");
+            printf("Failed to parse program\n");
         }
         
         free_tokens(token_array, token_count);
