@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
             // NEW: Generate IR code
             printf("\n=== IR GENERATION ===\n");
             IRCode *ir_code = create_ir_code();
-            generate_ir(root, ir_code);
+            generate_ir(root, ir_code, &global_symbol_table);
             emit_instruction(ir_code, IR_HALT);  // End marker
             print_ir_code(ir_code);
             if (vm.machine_state == ERROR) {

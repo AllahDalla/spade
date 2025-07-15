@@ -9,7 +9,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/spade.exe",
-            "args": ["test_scripts/variable_declaration/multiple.sp"],
+            "args": ["test_scripts/variable_declaration/string_concat.sp"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

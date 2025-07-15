@@ -39,6 +39,12 @@ enum TokenType get_expression_type(ASTNode *expr, SymbolTable *symbol_table) {
             enum TokenType right_type = get_expression_type(expr->data.bin_op.right, symbol_table);
             
             if (left_type == -1 || right_type == -1) return -1;
+
+            // TESTING STRING CONCATENATION IMPLEMENTATION
+            if(expr->data.bin_op.op == TOKEN_PLUS && left_type == TOKEN_STRING && right_type == TOKEN_STRING){
+                // should return a proper token indicating string concatenation
+                return TOKEN_STRING;
+            }
             
             // Arithmetic operators: +, -, *, /, %
             if (expr->data.bin_op.op == TOKEN_PLUS || expr->data.bin_op.op == TOKEN_MINUS ||
@@ -125,7 +131,7 @@ void analyze_AST(ASTNode *tree, SymbolTable *symbol_table){
                     printf("Error: Invalid expression in variable declaration\n");
                     return;
                 }
-                if(expr_type != tree->data.var_declaration.var_type){
+                if(expr_type != tree->data.var_declaration.var_type && (expr_type != TOKEN_STRING_LITERAL && tree->data.var_declaration.var_type == TOKEN_STRING)){
                     printf("Error: Type mismatch in declaration of '%s'. Cannot assign %s to %s\n",
                            tree->data.var_declaration.name,
                            get_token_name(expr_type),

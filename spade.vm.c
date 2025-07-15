@@ -393,6 +393,50 @@ VMResult execute_ir_code(VirtualMachine *vm, IRCode *ir_code){
                 break;
             }
                 
+            case IR_CONCAT: {
+                // String concatenation
+                int right_idx, left_idx;
+                if(pop_stack(vm, &right_idx) != VM_SUCCESS || pop_stack(vm, &left_idx) != VM_SUCCESS){
+                    printf("Error: Stack Underflow during string concatenation\n");
+                    vm->machine_state = ERROR;
+                    return VM_STACK_UNDERFLOW;
+                }
+                
+                // Get the strings from the string pool
+                char *left_str, *right_str;
+                if(load_string(vm, left_idx, &left_str) != VM_SUCCESS || 
+                   load_string(vm, right_idx, &right_str) != VM_SUCCESS){
+                    printf("Error: Failed to load strings for concatenation\n");
+                    vm->machine_state = ERROR;
+                    return VM_INDEX_OUT_OF_BOUNDS;
+                }
+                
+                // Calculate new string length and allocate memory
+                int new_len = strlen(left_str) + strlen(right_str) + 1;
+                char *result = malloc(new_len);
+                if (!result) {
+                    printf("Error: Failed to allocate memory for string concatenation\n");
+                    vm->machine_state = ERROR;
+                    return VM_OUT_OF_MEMORY;
+                }
+                
+                // Concatenate the strings
+                strcpy(result, left_str);
+                strcat(result, right_str);
+                
+                // Store the result in the string pool and push its index
+                if(store_string(vm, result) != VM_SUCCESS){
+                    printf("Error: Failed to store concatenated string\n");
+                    free(result);
+                    vm->machine_state = ERROR;
+                    return VM_OUT_OF_MEMORY;
+                }
+                
+                // Free the temporary result string (it's been copied by store_string)
+                free(result);
+                break;
+            }
+                
             case IR_ADD: {
                 // TODO: Implement addition
                 int left, right;

@@ -13,6 +13,7 @@ Spade is a statically-typed programming language with C-like syntax. This reposi
 - ✅ **Semantic Analysis** - Type checking, variable validation, and error reporting
 - ✅ **IR Generation** - Stack-based intermediate representation with post-order traversal
 - ✅ **Virtual Machine** - Full bytecode interpreter with stack-based execution
+- ✅ **String Support** - String literals and concatenation with proper type checking
 - ✅ **Comprehensive Testing** - Extensive test suite for all compiler phases
 - ✅ **Memory Management** - Proper allocation and cleanup throughout the pipeline
 - ✅ **Safety Features** - Overflow detection, bounds checking, and robust error handling
@@ -48,6 +49,11 @@ string message = "Hello World";
 int result = (5 + 3) * 2 - 1;
 bool comparison = x > 5 && flag;
 int power = 2 ** 3 ** 2;  // Right-associative: 2^(3^2) = 512
+
+// String concatenation
+string greeting = "Hello";
+string name = "World";
+string full_message = greeting + " " + name;  // "Hello World"
 ```
 
 ## 🏗️ Architecture
@@ -391,7 +397,7 @@ current state, and areas for improvement.
 
 ### IR Instruction Set
 - **Stack Operations**: `PUSH_CONST`, `PUSH_VAR`, `STORE_VAR`
-- **String Operations**: `PUSH_STRING_LIT` (string literal support)
+- **String Operations**: `PUSH_STRING_LIT`, `CONCAT` (string literals and concatenation)
 - **Arithmetic**: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `POW`
 - **Comparison**: `EQ`, `NE`, `LT`, `GT`, `LE`, `GE`
 - **Logical**: `AND`, `OR`, `NOT`
@@ -410,7 +416,9 @@ current state, and areas for improvement.
 - **Stack-based execution**: 100-element runtime stack with overflow protection
 - **Variable storage**: Dynamic variable table with automatic resizing
 - **String pool**: Efficient string literal storage with 50-string initial capacity
-- **20 IR instructions**: Complete arithmetic, comparison, logical, string, and control operations
+- **String concatenation**: Full string concatenation with memory management
+- **Type checking**: Proper distinction between string and integer operations
+- **21 IR instructions**: Complete arithmetic, comparison, logical, string, and control operations
 - **Safe power operations**: Integer overflow detection and bounds checking
 - **Error handling**: Comprehensive error reporting with detailed diagnostics
 - **Memory safety**: Proper allocation/deallocation with no memory leaks

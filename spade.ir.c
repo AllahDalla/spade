@@ -3,6 +3,43 @@
 #include <string.h>
 #include "spade.ir.h"
 #include "spade.vm.h"
+#include "spade.symbol.h"
+
+/**
+ * Helper function to determine if an AST node represents a string type
+ * @param ast The AST node to check
+ * @param symbol_table The symbol table to look up variable types
+ * @return 1 if the node represents a string, 0 otherwise
+ */
+int is_string_type(ASTNode *ast, SymbolTable *symbol_table) {
+    if (!ast) return 0;
+    
+    switch (ast->type) {
+        case AST_STRING_LITERAL:
+            return 1;
+            
+        case AST_IDENTIFIER: {
+            // Look up the variable in the symbol table
+            for (int i = 0; i < symbol_table->count; i++) {
+                if (strcmp(symbol_table->symbols[i]->name, ast->data.identifier.name) == 0) {
+                    return symbol_table->symbols[i]->type == TOKEN_STRING;
+                }
+            }
+            return 0;  // Variable not found, assume not string
+        }
+        
+        case AST_BINARY_OPERATION:
+            // If it's a + operation between strings, the result is a string
+            if (ast->data.bin_op.op == TOKEN_PLUS) {
+                return is_string_type(ast->data.bin_op.left, symbol_table) || 
+                       is_string_type(ast->data.bin_op.right, symbol_table);
+            }
+            return 0;
+            
+        default:
+            return 0;
+    }
+}
 
 /**
  * Creates and initializes a new IR code container.
@@ -119,14 +156,14 @@ void emit_instruction_string_lit(IRCode *code, IROpcode opcode, const char *stri
  * @param code The IR code container to emit instructions to
  * @param vm The virtual machine for string pool management
  */
-void generate_ir(ASTNode *ast, IRCode *code) {
+void generate_ir(ASTNode *ast, IRCode *code, SymbolTable *symbol_table) {
     if (!ast) return;
     
     switch (ast->type) {
         case AST_PROGRAM: {
             // Generate IR for all statements in the program
             for(int i = 0; i < ast->data.program.statement_count; i++){
-                generate_ir(ast->data.program.statements[i], code);
+                generate_ir(ast->data.program.statements[i], code, symbol_table);
             }
             break;
         }
@@ -145,13 +182,26 @@ void generate_ir(ASTNode *ast, IRCode *code) {
             
         case AST_BINARY_OPERATION:
             // Generate IR for left operand first
-            generate_ir(ast->data.bin_op.left, code);
+            generate_ir(ast->data.bin_op.left, code, symbol_table);
             // Generate IR for right operand second
-            generate_ir(ast->data.bin_op.right, code);
+            generate_ir(ast->data.bin_op.right, code, symbol_table);
             
             // Then emit the operation
             switch (ast->data.bin_op.op) {
-                case TOKEN_PLUS:     emit_instruction(code, IR_ADD); break;
+                case TOKEN_PLUS:{
+                    // Check if either operand is a string type
+                    int left_is_string = is_string_type(ast->data.bin_op.left, symbol_table);
+                    int right_is_string = is_string_type(ast->data.bin_op.right, symbol_table);
+                    
+                    // If either operand is a string, treat as string concatenation
+                    if (left_is_string || right_is_string) {
+                        emit_instruction(code, IR_CONCAT);
+                    } else {
+                        // Both operands are non-string types, use regular addition
+                        emit_instruction(code, IR_ADD);
+                    }
+                    break;
+                }     
                 case TOKEN_MINUS:    emit_instruction(code, IR_SUB); break;
                 case TOKEN_MULTIPLY: emit_instruction(code, IR_MUL); break;
                 case TOKEN_DIVIDE:   emit_instruction(code, IR_DIV); break;
@@ -173,13 +223,13 @@ void generate_ir(ASTNode *ast, IRCode *code) {
         case AST_VARIABLE_DECLARATION:
             // Generate IR for the initializer expression if present
             if (ast->data.var_declaration.value) {
-                generate_ir(ast->data.var_declaration.value, code);
+                generate_ir(ast->data.var_declaration.value, code, symbol_table);
                 emit_instruction_var(code, IR_STORE_VAR, ast->data.var_declaration.name);
             }
             break;
             
         case AST_UNARY_OPERATION:
-            generate_ir(ast->data.unary_op.operand, code);
+            generate_ir(ast->data.unary_op.operand, code, symbol_table);
             switch (ast->data.unary_op.op) {
                 case TOKEN_MINUS: emit_instruction(code, IR_NEG); break;
                 case TOKEN_NOT:   emit_instruction(code, IR_NOT); break;
@@ -218,6 +268,7 @@ void print_ir_code(IRCode *code) {
             case IR_PUSH_VAR:   printf("PUSH_VAR %s\n", instr->operand.var_name); break;
             case IR_PUSH_STRING_LIT: printf("PUSH_STRING_LIT \"%s\"\n", instr->operand.string_lit); break;
             case IR_STORE_VAR:  printf("STORE_VAR %s\n", instr->operand.var_name); break;
+            case IR_CONCAT:     printf("CONCAT\n"); break;
             case IR_ADD:        printf("ADD\n"); break;
             case IR_SUB:        printf("SUB\n"); break;
             case IR_MUL:        printf("MUL\n"); break;
