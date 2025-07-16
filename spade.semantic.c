@@ -169,5 +169,42 @@ void analyze_AST(ASTNode *tree, SymbolTable *symbol_table){
             analyze_AST(tree->data.bin_op.right, symbol_table);
             break;
         }
+
+        case AST_FUNCTION_DECLARATION: {
+            // TODO: Add function to symbol table and check parameter types
+            // For now, just analyze the parameters
+            if(tree->data.function_declaration.parameters) {
+                analyze_AST(tree->data.function_declaration.parameters, symbol_table);
+            }
+            if(tree->data.function_declaration.body) {
+                analyze_AST(tree->data.function_declaration.body, symbol_table);
+            }
+            break;
+        }
+
+        case AST_PARAMETER_LIST: {
+            // Analyze all parameters
+            for(int i = 0; i < tree->data.parameter_list.parameter_count; i++){
+                analyze_AST(tree->data.parameter_list.parameters[i], symbol_table);
+            }
+            break;
+        }
+
+        case AST_PARAMETER: {
+            // TODO: Add parameter to local scope symbol table
+            // For now, just validate that the parameter type is valid
+            break;
+        }
+
+        case AST_NUMBER:
+        case AST_BOOLEAN:
+        case AST_STRING_LITERAL:
+        case AST_NULL:
+            // These are leaf nodes, no need to analyze further
+            break;
+
+        default:
+            printf("Warning: Unknown AST node type in semantic analysis: %d\n", tree->type);
+            break;
     }
 }

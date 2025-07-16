@@ -6,6 +6,9 @@
 typedef enum {
     AST_PROGRAM,              // Container for multiple statements
     AST_VARIABLE_DECLARATION,
+    AST_FUNCTION_DECLARATION,
+    AST_PARAMETER_LIST,
+    AST_PARAMETER,
     AST_NUMBER,
     AST_IDENTIFIER,
     AST_BOOLEAN,
@@ -14,6 +17,9 @@ typedef enum {
     AST_UNARY_OPERATION,
     AST_NULL
 } ASTNodeType;
+
+
+
 
 typedef struct ASTNode {
     ASTNodeType type;
@@ -29,6 +35,29 @@ typedef struct ASTNode {
             char *name;                 // Variable name
             struct ASTNode *value;      // NULL if no initialization
         } var_declaration;
+        
+        struct {
+            char *name;                       // Function name identifier
+            enum TokenType return_type;       // Return type (TOKEN_INT, TOKEN_STRING, etc.)
+            struct ASTNode *parameters;       // Pointer to AST_PARAMETER_LIST node
+            struct ASTNode *body;             // Function body (currently NULL for empty {})
+        }function_declaration;
+        
+        struct {
+            enum TokenType type;              // Parameter type (TOKEN_INT, TOKEN_STRING, etc.)
+            char *name;                       // Parameter name identifier
+        }parameter;
+        
+        struct {
+            struct ASTNode **parameters;      // Array of AST_PARAMETER node pointers
+            int parameter_count;              // Number of parameters in the list
+            int capacity;                     // Allocated capacity for parameters array
+        }parameter_list;
+        
+        struct {
+            char *name;                       // Function name to call
+            struct ASTNode *arguments;        // Argument list (not yet implemented)
+        }function_call;
         
         struct {
             int value;
@@ -80,5 +109,7 @@ ASTNode *parse_exponent(Parser *parser);
 ASTNode *parse_unary(Parser *parser);
 ASTNode *parse_primary(Parser *parser);
 ASTNode *parse_variable_declaration(Parser *parser);
+ASTNode *parse_function_declaration(Parser *parser);
+ASTNode *parse_parameter_list(Parser *parser);
 
 #endif

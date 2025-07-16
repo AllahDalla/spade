@@ -12,6 +12,9 @@ SymbolTable global_symbol_table = {0};
 const char *ast_type_strings[] = {
     "AST_PROGRAM",
     "AST_VARIABLE_DECLARATION",
+    "AST_FUNCTION_DECLARATION",
+    "AST_PARAMETER_LIST",
+    "AST_PARAMETER",
     "AST_NUMBER",
     "AST_IDENTIFIER",
     "AST_BOOLEAN",
@@ -49,7 +52,7 @@ void advance(Parser *parser) {
 }
 
 /**
- * Gets the previous token from the parser.
+ * Gets the previous token from the parser without changing the current position.
  * 
  * @param parser The parser instance
  * @return The token at the previous position
@@ -57,6 +60,7 @@ void advance(Parser *parser) {
 Token previous_token(Parser *parser) {
     return parser->tokens[parser->current - 1];
 }
+
 
 
 /**
@@ -150,6 +154,34 @@ void free_AST(ASTNode *node) {
                 break;
             }
 
+            case AST_FUNCTION_DECLARATION: {
+                if(node->data.function_declaration.name != NULL){
+                    free(node->data.function_declaration.name);
+                }
+                if(node->data.function_declaration.parameters != NULL){
+                    free_AST(node->data.function_declaration.parameters);
+                }
+                if(node->data.function_declaration.body != NULL){
+                    free_AST(node->data.function_declaration.body);
+                }
+                break;
+            }
+
+            case AST_PARAMETER_LIST: {
+                for(int i = 0; i < node->data.parameter_list.parameter_count; i++){
+                    free_AST(node->data.parameter_list.parameters[i]);
+                }
+                free(node->data.parameter_list.parameters);
+                break;
+            }
+
+            case AST_PARAMETER: {
+                if(node->data.parameter.name != NULL){
+                    free(node->data.parameter.name);
+                }
+                break;
+            }
+
             case AST_NULL: break;
 
             default:
@@ -234,6 +266,35 @@ void print_AST(ASTNode *node, int indent) {
             break;
         }
             
+        case AST_FUNCTION_DECLARATION:
+            printf("FUNCTION_DECL: type=%s, name='%s'\n", 
+                   get_token_name(node->data.function_declaration.return_type),
+                   node->data.function_declaration.name);
+            if (node->data.function_declaration.parameters) {
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("parameters:\n");
+                print_AST(node->data.function_declaration.parameters, indent + 2);
+            }
+            if (node->data.function_declaration.body) {
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("body:\n");
+                print_AST(node->data.function_declaration.body, indent + 2);
+            }
+            break;
+
+        case AST_PARAMETER_LIST:
+            printf("PARAMETER_LIST: %d parameters\n", node->data.parameter_list.parameter_count);
+            for (int i = 0; i < node->data.parameter_list.parameter_count; i++) {
+                print_AST(node->data.parameter_list.parameters[i], indent + 1);
+            }
+            break;
+
+        case AST_PARAMETER:
+            printf("PARAMETER: type=%s, name='%s'\n", 
+                   get_token_name(node->data.parameter.type),
+                   node->data.parameter.name);
+            break;
+
         case AST_NULL:
             printf("NULL\n");
             break;
@@ -312,7 +373,12 @@ ASTNode *parse_statement(Parser *parser) {
     
     // Variable declaration: int, bool, string, etc.
     if (is_data_type_token(token.type)) {
-        return parse_variable_declaration(parser);
+        Token next_token = parser->tokens[parser->current + 1];
+        if(next_token.type == TOKEN_IDENTIFIER){
+            return parse_variable_declaration(parser);
+        }else if(next_token.type == TOKEN_TASK){
+            return parse_function_declaration(parser);
+        }
     }
     
     // Future: Add more statement types
@@ -626,4 +692,167 @@ ASTNode *parse_variable_declaration(Parser *parser){
     }
 
     return node;
+}
+
+/**
+ * Parses a function parameter list enclosed in parentheses.
+ * 
+ * Handles both empty parameter lists "()" and parameter lists with one or more
+ * parameters "int a, string b". Creates an AST_PARAMETER_LIST node containing
+ * an array of AST_PARAMETER nodes.
+ * 
+ * @param parser The parser instance
+ * @return An AST_PARAMETER_LIST node containing all parameters, or NULL on error
+ */
+ASTNode *parse_parameter_list(Parser *parser){
+    Token token = current_token(parser);
+    Token next = parser->tokens[parser->current + 1];
+
+    if(token.type == TOKEN_LPAREN && next.type == TOKEN_RPAREN){
+        // Handle empty parameter list
+        advance(parser); // skip LPAREN
+        advance(parser); // skip RPAREN
+        ASTNode *node = malloc(sizeof(ASTNode));
+        node->type = AST_PARAMETER_LIST;
+        node->data.parameter_list.capacity = 10;
+        node->data.parameter_list.parameter_count = 0;
+        node->data.parameter_list.parameters = malloc(sizeof(ASTNode *) * node->data.parameter_list.capacity);
+        return node;
+    }
+
+    advance(parser); // advance to the next token
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = AST_PARAMETER_LIST; // set the type of the node
+    node->data.parameter_list.capacity = 10;
+    node->data.parameter_list.parameter_count = 0;
+    node->data.parameter_list.parameters = malloc(sizeof(ASTNode *) * node->data.parameter_list.capacity);
+    token = current_token(parser);
+
+    // check if token starts with a data type
+    if(!is_data_type_token(token.type)){
+        printf("Error: Expected data type token, got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+    // TODO: handle parameters that are expressions
+
+    // while loop to parse parameters - starts with a data type
+    while(token.type != TOKEN_RPAREN){
+
+        if(token.type == TOKEN_COMMA){
+            advance(parser); // advance to the next token
+            token = current_token(parser);
+            continue;
+        }
+
+        if(is_data_type_token(token.type)){
+            // create parameter node
+            ASTNode *parameter = malloc(sizeof(ASTNode));
+            parameter->type = AST_PARAMETER; // set the type of the node
+            parameter->data.parameter.type = token.type; // set the data type of variable in node
+            advance(parser); // advance to the next token
+            token = current_token(parser);
+            if(token.type != TOKEN_IDENTIFIER){
+                printf("Error: Expected identifier, got %s\n", token.value);
+                free_AST(parameter);
+                free_AST(node);
+                return NULL;
+            }
+
+            parameter->data.parameter.name = strdup(token.value); // set the name of the variable
+            node->data.parameter_list.parameters[node->data.parameter_list.parameter_count++] = parameter; // add parameter to the list
+            advance(parser); // advance to the next token
+            token = current_token(parser);
+        }
+    }
+
+    return node;
+
+}
+
+
+/**
+ * Parses a function declaration statement following Spade syntax.
+ * 
+ * Parses function declarations in the format:
+ * return_type task function_name(parameters) { body };
+ * 
+ * Creates an AST_FUNCTION_DECLARATION node with return type, name, 
+ * parameter list, and body (currently just empty braces).
+ * 
+ * @param parser The parser instance
+ * @return An AST_FUNCTION_DECLARATION node, or NULL on error
+ */
+ASTNode *parse_function_declaration(Parser *parser){
+    Token token = current_token(parser);
+
+    // check if token starts with a data type
+    if(!is_data_type_token(token.type)){
+        printf("Error: Expected data type token, got %s\n", token.value);
+        return NULL;
+    }
+
+    // create function declaration node
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = AST_FUNCTION_DECLARATION; // set the type of the node
+    node->data.function_declaration.return_type = token.type; // set the data type of variable in node
+    advance(parser); // advance to the next token
+
+    //  next token should be the task token
+    token = current_token(parser);
+
+    // check if the next token is indeed a task token
+    if(token.type != TOKEN_TASK){
+        printf("Error: Expected task token, got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+    advance(parser);
+
+    // check if the next token is an identifier
+    token = current_token(parser);
+    if(token.type != TOKEN_IDENTIFIER){
+        printf("Error: Expected identifier, got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
+    // set the name of the function
+    node->data.function_declaration.name = strdup(token.value);
+    advance(parser); // advance to the next token
+
+    // check if the next token is a left parenthesis
+    token = current_token(parser);
+    if(token.type != TOKEN_LPAREN){
+        printf("Error: Expected '(', got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
+    node->data.function_declaration.parameters = parse_parameter_list(parser); // parse the parameter list
+    if(!node->data.function_declaration.parameters){
+        printf("Error: Expected parameter list, got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
+    advance(parser); // advance to the next token
+    token = current_token(parser);
+
+    if(!match(parser, TOKEN_BRACE)){
+        printf("Error: Expected '{', got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
+
+    if(!match(parser, TOKEN_SEMICOLON)){
+        printf("Error: Expected ';', got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
+    node->data.function_declaration.body = NULL; // body of the function is not implemented yet
+    return node;
+
 }

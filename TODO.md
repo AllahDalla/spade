@@ -27,7 +27,9 @@
 - [x] Test cases for string concatenation
 
 ### Phase 2: Function Definitions (Current Priority)
-- [ ] Function declaration syntax parsing
+- [x] Function declaration syntax parsing (AST nodes: FUNCTION_DECLARATION, PARAMETER_LIST, PARAMETER)
+- [x] Function declaration semantic analysis (basic structure)
+- [ ] Function call parsing and AST generation
 - [ ] Function call mechanism with parameters
 - [ ] Return value handling
 - [ ] Local variable scope (stack frames)
