@@ -13,8 +13,11 @@ const char *ast_type_strings[] = {
     "AST_PROGRAM",
     "AST_VARIABLE_DECLARATION",
     "AST_FUNCTION_DECLARATION",
+    "AST_FUNCTION_CALL",
     "AST_PARAMETER_LIST",
     "AST_PARAMETER",
+    "AST_ARGUMENT_LIST",
+    "AST_ARGUMENT",
     "AST_NUMBER",
     "AST_IDENTIFIER",
     "AST_BOOLEAN",
@@ -182,6 +185,31 @@ void free_AST(ASTNode *node) {
                 break;
             }
 
+            case AST_FUNCTION_CALL: {
+                if(node->data.function_call.name != NULL){
+                    free(node->data.function_call.name);
+                }
+                if(node->data.function_call.arguments != NULL){
+                    free_AST(node->data.function_call.arguments);
+                }
+                break;
+            }
+
+            case AST_ARGUMENT_LIST: {
+                for(int i = 0; i < node->data.argument_list.argument_count; i++){
+                    free_AST(node->data.argument_list.arguments[i]);
+                }
+                free(node->data.argument_list.arguments);
+                break;
+            }
+
+            case AST_ARGUMENT: {
+                if(node->data.argument.value != NULL){
+                    free_AST(node->data.argument.value);
+                }
+                break;
+            }
+
             case AST_NULL: break;
 
             default:
@@ -293,6 +321,31 @@ void print_AST(ASTNode *node, int indent) {
             printf("PARAMETER: type=%s, name='%s'\n", 
                    get_token_name(node->data.parameter.type),
                    node->data.parameter.name);
+            break;
+
+        case AST_FUNCTION_CALL:
+            printf("FUNCTION_CALL: name='%s'\n", node->data.function_call.name);
+            if (node->data.function_call.arguments) {
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("arguments:\n");
+                print_AST(node->data.function_call.arguments, indent + 2);
+            }
+            break;
+
+        case AST_ARGUMENT_LIST:
+            printf("ARGUMENT_LIST: %d arguments\n", node->data.argument_list.argument_count);
+            for (int i = 0; i < node->data.argument_list.argument_count; i++) {
+                print_AST(node->data.argument_list.arguments[i], indent + 1);
+            }
+            break;
+
+        case AST_ARGUMENT:
+            printf("ARGUMENT:\n");
+            if (node->data.argument.value) {
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("value:\n");
+                print_AST(node->data.argument.value, indent + 2);
+            }
             break;
 
         case AST_NULL:
@@ -568,6 +621,17 @@ ASTNode *parse_unary(Parser *parser){
     return parse_primary(parser);
 }
 
+/**
+ * Parses primary expressions (literals, identifiers, function calls, parenthesized expressions).
+ * 
+ * Handles:
+ * - Numbers, booleans, string literals
+ * - Identifiers and function calls (identifier followed by parentheses)
+ * - Parenthesized expressions
+ * 
+ * @param parser The parser instance
+ * @return An AST node representing the primary expression, or NULL on error
+ */
 ASTNode *parse_primary(Parser *parser){
 
     switch(current_token(parser).type){
@@ -580,10 +644,56 @@ ASTNode *parse_primary(Parser *parser){
         }
 
         case TOKEN_IDENTIFIER: {
+            // Look ahead to distinguish between identifier and function call
+            Token next = parser->tokens[parser->current + 1];
+
+            // Check for function call pattern: identifier followed by '('
+            if(next.type != TOKEN_LPAREN){
+                // Simple identifier (variable reference)
+                ASTNode *node = malloc(sizeof(ASTNode));
+                node->type = AST_IDENTIFIER;
+                node->data.identifier.name = strdup(current_token(parser).value);
+                advance(parser);
+                return node;
+            }
+
+            // Function call: identifier(arguments)
             ASTNode *node = malloc(sizeof(ASTNode));
-            node->type = AST_IDENTIFIER;
-            node->data.identifier.name = strdup(current_token(parser).value);
-            advance(parser);
+            node->type = AST_FUNCTION_CALL;
+            node->data.function_call.name = strdup(current_token(parser).value);  // Store function name
+            advance(parser);    // Move past function name to '('
+            
+            // Create argument list container
+            ASTNode *arg_list = malloc(sizeof(ASTNode));
+            arg_list->type = AST_ARGUMENT_LIST;
+            arg_list->data.argument_list.argument_count = 0;
+            arg_list->data.argument_list.capacity = 10;
+            arg_list->data.argument_list.arguments = malloc(sizeof(ASTNode *) * arg_list->data.argument_list.capacity);
+            advance(parser);    // Move past '(' to first argument
+
+            // Parse arguments until closing parenthesis
+            while(current_token(parser).type != TOKEN_RPAREN){
+                if(current_token(parser).type == TOKEN_COMMA){
+                    advance(parser);    // Skip comma separators
+                    continue;
+                }
+                
+                // Parse each argument as an expression
+                ASTNode *arg = malloc(sizeof(ASTNode));
+                arg->type = AST_ARGUMENT;
+                arg->data.argument.value = parse_expression(parser);  // Parse argument expression
+                
+                // Add argument to list, expanding capacity if needed
+                arg_list->data.argument_list.arguments[arg_list->data.argument_list.argument_count++] = arg;
+                if(arg_list->data.argument_list.argument_count >= arg_list->data.argument_list.capacity - 1){
+                    arg_list->data.argument_list.capacity *= 2;
+                    arg_list->data.argument_list.arguments = realloc(arg_list->data.argument_list.arguments, 
+                        arg_list->data.argument_list.capacity * sizeof(ASTNode *));
+                }
+            }
+
+            node->data.function_call.arguments = arg_list;
+            advance(parser);    // Move past closing ')'
             return node;
         }
 

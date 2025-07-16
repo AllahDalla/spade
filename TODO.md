@@ -28,12 +28,18 @@
 
 ### Phase 2: Function Definitions (Current Priority)
 - [x] Function declaration syntax parsing (AST nodes: FUNCTION_DECLARATION, PARAMETER_LIST, PARAMETER)
+- [x] Function call parsing and AST generation (AST nodes: FUNCTION_CALL, ARGUMENT_LIST, ARGUMENT)
+- [x] Complete parser implementation with memory management and debugging support
 - [x] Function declaration semantic analysis (basic structure)
-- [ ] Function call parsing and AST generation
+- [ ] **Function semantic analysis enhancement (NEXT STEP)**
+  - [ ] Save function parameters to symbol table
+  - [ ] Function signature validation and storage
+  - [ ] Function call argument type checking
+  - [ ] Parameter-argument count and type matching
+  - [ ] Function scope management
 - [ ] Function call mechanism with parameters
 - [ ] Return value handling
 - [ ] Local variable scope (stack frames)
-- [ ] Function symbol table management
 - [ ] IR instructions for CALL/RET operations
 
 ### Phase 3: Additional String Operations

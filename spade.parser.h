@@ -7,8 +7,11 @@ typedef enum {
     AST_PROGRAM,              // Container for multiple statements
     AST_VARIABLE_DECLARATION,
     AST_FUNCTION_DECLARATION,
+    AST_FUNCTION_CALL,
     AST_PARAMETER_LIST,
     AST_PARAMETER,
+    AST_ARGUMENT_LIST,
+    AST_ARGUMENT,
     AST_NUMBER,
     AST_IDENTIFIER,
     AST_BOOLEAN,
@@ -56,8 +59,19 @@ typedef struct ASTNode {
         
         struct {
             char *name;                       // Function name to call
-            struct ASTNode *arguments;        // Argument list (not yet implemented)
+            struct ASTNode *arguments;        // Pointer to AST_ARGUMENT_LIST node
         }function_call;
+
+        struct {
+            struct ASTNode **arguments;       // Array of AST_ARGUMENT node pointers
+            int argument_count;               // Number of arguments in the list
+            int capacity;                     // Allocated capacity for arguments array
+        }argument_list;
+
+        struct {
+            enum TokenType type;              // Argument type (determined during semantic analysis)
+            struct ASTNode *value;            // Expression value of the argument
+        }argument;
         
         struct {
             int value;
