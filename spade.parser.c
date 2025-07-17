@@ -933,7 +933,7 @@ ASTNode *parse_function_declaration(Parser *parser){
 
     // check if the next token is a left parenthesis
     token = current_token(parser);
-    if(token.type != TOKEN_LPAREN){
+    if(token.type != TOKEN_LPAREN && token.type != TOKEN_PAREN){
         printf("Error: Expected '(', got %s\n", token.value);
         free_AST(node);
         return NULL;

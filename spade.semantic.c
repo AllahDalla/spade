@@ -80,6 +80,35 @@ enum TokenType get_expression_type(ASTNode *expr, SymbolTable *symbol_table) {
             printf("Error: Unknown binary operator\n");
             return -1;
         }
+
+        case AST_FUNCTION_CALL: {
+            char *func_name = expr->data.function_call.name;
+            ASTNode *arg_list = expr->data.function_call.arguments;
+            int arg_count = arg_list->data.argument_list.argument_count;
+            
+            // Create Param array (not AST nodes)
+            Param *params = malloc(sizeof(Param) * arg_count);
+            for(int i = 0; i < arg_count; i++) {
+                ASTNode *arg_expr = arg_list->data.argument_list.arguments[i]->data.argument.value;
+                params[i].type = get_expression_type(arg_expr, symbol_table);
+                params[i].name = NULL;
+                
+                if(params[i].type == -1) {
+                    free(params);
+                    return -1;
+                }
+            }
+            
+            Symbol *function = lookup_symbol_table_function(symbol_table, func_name, params, arg_count);
+            free(params);
+            
+            if(function != NULL) {
+                return function->type;
+            }
+            
+            printf("Error: Function '%s' not found\n", func_name);
+            return -1;
+        }
         
         default:
             printf("Error: Unknown expression type\n");
@@ -171,7 +200,34 @@ void analyze_AST(ASTNode *tree, SymbolTable *symbol_table){
         }
 
         case AST_FUNCTION_DECLARATION: {
-            // TODO: Add function to symbol table and check parameter types
+            // Convert AST parameter list to Param array
+            ASTNode *param_list_ast = tree->data.function_declaration.parameters;
+            int param_count = param_list_ast->data.parameter_list.parameter_count;
+            
+            Param *params = malloc(sizeof(Param) * param_count);
+            for(int i = 0; i < param_count; i++) {
+                ASTNode *param_ast = param_list_ast->data.parameter_list.parameters[i];
+                params[i].name = strdup(param_ast->data.parameter.name);
+                params[i].type = param_ast->data.parameter.type;
+            }
+            
+            if(!add_symbol_function(symbol_table, tree->data.function_declaration.name, 
+                                   tree->data.function_declaration.return_type, params, param_count)) {
+                printf("Error: Function '%s' already declared\n", tree->data.function_declaration.name);
+                // Free allocated memory
+                for(int i = 0; i < param_count; i++) {
+                    free(params[i].name);
+                }
+                free(params);
+                return;
+            }
+            
+            // Free allocated memory
+            for(int i = 0; i < param_count; i++) {
+                free(params[i].name);
+            }
+            free(params);
+            
             // For now, just analyze the parameters
             if(tree->data.function_declaration.parameters) {
                 analyze_AST(tree->data.function_declaration.parameters, symbol_table);
@@ -191,8 +247,37 @@ void analyze_AST(ASTNode *tree, SymbolTable *symbol_table){
         }
 
         case AST_PARAMETER: {
-            // TODO: Add parameter to local scope symbol table
-            // For now, just validate that the parameter type is valid
+            // TODO: expression type checking
+            // parameters are already checked during function declaration and added to local symbol table
+            break;
+        }
+
+
+        case AST_FUNCTION_CALL: {
+            char *function_name = tree->data.function_call.name;
+            ASTNode *arg_list = tree->data.function_call.arguments;
+            int arg_count = arg_list->data.argument_list.argument_count;
+            
+            Param *params = malloc(sizeof(Param) * arg_count);
+            for(int i = 0; i < arg_count; i++) {
+                ASTNode *arg_expr = arg_list->data.argument_list.arguments[i]->data.argument.value;
+                params[i].type = get_expression_type(arg_expr, symbol_table);
+                params[i].name = NULL;
+                
+                if(params[i].type == -1) {
+                    printf("Error: Invalid expression as argument in function call\n");
+                    free(params);
+                    return;
+                }
+            }
+            
+            if(lookup_symbol_table_function(symbol_table, function_name, params, arg_count) == NULL) {
+                printf("Error: Function '%s' not declared\n", function_name);
+                free(params);
+                return;
+            }
+            
+            free(params);
             break;
         }
 

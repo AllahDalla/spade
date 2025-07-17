@@ -31,16 +31,34 @@
 - [x] Function call parsing and AST generation (AST nodes: FUNCTION_CALL, ARGUMENT_LIST, ARGUMENT)
 - [x] Complete parser implementation with memory management and debugging support
 - [x] Function declaration semantic analysis (basic structure)
-- [ ] **Function semantic analysis enhancement (NEXT STEP)**
-  - [ ] Save function parameters to symbol table
-  - [ ] Function signature validation and storage
-  - [ ] Function call argument type checking
-  - [ ] Parameter-argument count and type matching
-  - [ ] Function scope management
-- [ ] Function call mechanism with parameters
+- [x] **Symbol table enhancement for functions**
+  - [x] Extended Symbol and SymbolTable structs with Param support
+  - [x] Added add_symbol_function() for function symbols with parameters
+  - [x] Added lookup_symbol_table_function() for function signature matching
+  - [x] Implemented parent-child scope relationships (local_scope pointer)
+  - [x] Added parameter storage and type validation
+  - [x] Complete memory management for nested symbol tables
+  - [x] Comprehensive documentation and inline comments
+- [x] **Semantic analysis implementation**
+  - [x] Integrate new symbol table functions into semantic analyzer
+  - [x] Validate function declarations and store in symbol table
+  - [x] Type check function call arguments against parameter signatures
+  - [x] Implement parameter-argument count and type matching
+  - [x] Handle function scope management during analysis
+  - [x] Comprehensive testing with function declarations, calls, and error detection
+- [ ] **Known Issues & Fixes**
+  - [ ] **Bug: Empty parameter/argument lists cause crashes**
+    - **Issue**: Functions with empty parameter lists `()` crash during parsing/semantic analysis
+    - **Root Cause**: TOKEN_PAREN conflicts with TOKEN_LPAREN/TOKEN_RPAREN handling
+    - **Fix**: Remove TOKEN_PAREN from lexer, use only TOKEN_LPAREN and TOKEN_RPAREN
+    - **Location**: spade.lexer.c - update token recognition logic
+- [ ] **IR generation for functions (NEXT STEP)**
+  - [ ] Add IR opcodes for function calls (IR_CALL, IR_RET, IR_ENTER)
+  - [ ] Generate IR for function declarations
+  - [ ] Generate IR for function calls with argument passing
+  - [ ] Implement function call mechanism with parameters
 - [ ] Return value handling
 - [ ] Local variable scope (stack frames)
-- [ ] IR instructions for CALL/RET operations
 
 ### Phase 3: Additional String Operations
 - [ ] String comparison operators (`==`, `!=` for strings)
