@@ -46,12 +46,13 @@
   - [x] Implement parameter-argument count and type matching
   - [x] Handle function scope management during analysis
   - [x] Comprehensive testing with function declarations, calls, and error detection
-- [ ] **Known Issues & Fixes**
-  - [ ] **Bug: Empty parameter/argument lists cause crashes**
+- [x] **Known Issues & Fixes**
+  - [x] **Bug: Empty parameter/argument lists cause crashes** ✅ RESOLVED
     - **Issue**: Functions with empty parameter lists `()` crash during parsing/semantic analysis
     - **Root Cause**: TOKEN_PAREN conflicts with TOKEN_LPAREN/TOKEN_RPAREN handling
-    - **Fix**: Remove TOKEN_PAREN from lexer, use only TOKEN_LPAREN and TOKEN_RPAREN
-    - **Location**: spade.lexer.c - update token recognition logic
+    - **Fix**: Removed TOKEN_PAREN, TOKEN_BRACE, TOKEN_BRACKET from token_type_strings array
+    - **Location**: spade.lexer.c - updated token recognition logic
+    - **Test Cases**: test_scripts/function/test_empty_params.sp, test_with_params.sp
 - [ ] **IR generation for functions (NEXT STEP)**
   - [ ] Add IR opcodes for function calls (IR_CALL, IR_RET, IR_ENTER)
   - [ ] Generate IR for function declarations
@@ -94,6 +95,24 @@
 **String Implementation**: Hybrid approach with IR storage and VM string pool for efficient execution
 
 **String Concatenation**: Full implementation with proper type checking - string + string operations generate IR_CONCAT instructions while integer + integer operations generate IR_ADD instructions
+
+## ⚠️ Critical Issues (Reddit Feedback)
+
+### Architecture Issues
+- **Lack of architectural planning** for scoped variables and loops - Current implementation doesn't properly handle variable scoping beyond global scope
+
+### VM Bugs ✅ RESOLVED
+- [x] **VM store_variable bug**: ~~`store_variable` function blindly creates new Variable structures without checking if variable already exists~~ **FIXED** - VM correctly updates existing variables
+- [x] **Memory leak**: ~~Variable table continually grows with duplicate entries on each store operation~~ **FIXED** - No duplicate entries created  
+- [x] **Critical execution bug**: ~~IR_STORE_VAR twice with same variable name results in wrong value retrieved (first occurrence instead of latest)~~ **FIXED** - Returns latest value correctly
+  ```
+  IR_PUSH_CONST 1
+  IR_STORE_VAR "x"   // x = 1
+  IR_PUSH_CONST 2  
+  IR_STORE_VAR "x"   // x = 2 (updates existing)
+  IR_PUSH_VAR "x"    // Returns 2 ✅ (correct)
+  ```
+- **Test Cases**: test_scripts/vm_test/ - vm_reassignment_bug.sp, multiple_reassignment.sp, multiple_variables_update.sp, interleaved_updates.sp
 
 ## 📋 Development Notes
 - See `improvements/string_literal_implementation.md` for detailed string implementation documentation

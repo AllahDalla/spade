@@ -18,6 +18,7 @@ const char *ast_type_strings[] = {
     "AST_PARAMETER",
     "AST_ARGUMENT_LIST",
     "AST_ARGUMENT",
+    "AST_ASSIGNMENT",
     "AST_NUMBER",
     "AST_IDENTIFIER",
     "AST_BOOLEAN",
@@ -210,6 +211,16 @@ void free_AST(ASTNode *node) {
                 break;
             }
 
+            case AST_ASSIGNMENT: {
+                if(node->data.variable_assignment.name != NULL){
+                    free(node->data.variable_assignment.name);
+                }
+                if(node->data.variable_assignment.value != NULL){
+                    free_AST(node->data.variable_assignment.value);
+                }
+                break;
+            }
+
             case AST_NULL: break;
 
             default:
@@ -348,6 +359,15 @@ void print_AST(ASTNode *node, int indent) {
             }
             break;
 
+        case AST_ASSIGNMENT:
+            printf("ASSIGNMENT: name='%s'\n", node->data.variable_assignment.name);
+            if (node->data.variable_assignment.value) {
+                for (int i = 0; i < indent + 1; i++) printf("  ");
+                printf("value:\n");
+                print_AST(node->data.variable_assignment.value, indent + 2);
+            }
+            break;
+
         case AST_NULL:
             printf("NULL\n");
             break;
@@ -432,6 +452,15 @@ ASTNode *parse_statement(Parser *parser) {
         }else if(next_token.type == TOKEN_TASK){
             return parse_function_declaration(parser);
         }
+    }
+
+    if(token.type == TOKEN_IDENTIFIER){
+        // check for variable reassignment
+        Token next_token = parser->tokens[parser->current + 1];
+        if(next_token.type == TOKEN_ASSIGN){
+            return parse_assignment(parser);
+        }
+        
     }
     
     // Future: Add more statement types
@@ -876,6 +905,7 @@ ASTNode *parse_parameter_list(Parser *parser){
         }
     }
 
+    advance(parser); // skip RPAREN to close the parameter list
     return node;
 
 }
@@ -933,7 +963,7 @@ ASTNode *parse_function_declaration(Parser *parser){
 
     // check if the next token is a left parenthesis
     token = current_token(parser);
-    if(token.type != TOKEN_LPAREN && token.type != TOKEN_PAREN){
+    if(token.type != TOKEN_LPAREN){
         printf("Error: Expected '(', got %s\n", token.value);
         free_AST(node);
         return NULL;
@@ -946,15 +976,19 @@ ASTNode *parse_function_declaration(Parser *parser){
         return NULL;
     }
 
-    advance(parser); // advance to the next token
     token = current_token(parser);
 
-    if(!match(parser, TOKEN_BRACE)){
+    if(!match(parser, TOKEN_LBRACE)){
         printf("Error: Expected '{', got %s\n", token.value);
         free_AST(node);
         return NULL;
     }
 
+    if(!match(parser, TOKEN_RBRACE)){
+        printf("Error: Expected '}', got %s. No support for function body\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
 
     if(!match(parser, TOKEN_SEMICOLON)){
         printf("Error: Expected ';', got %s\n", token.value);
@@ -963,6 +997,47 @@ ASTNode *parse_function_declaration(Parser *parser){
     }
 
     node->data.function_declaration.body = NULL; // body of the function is not implemented yet
+    return node;
+
+}
+
+
+ASTNode *parse_assignment(Parser *parser){
+    Token token = current_token(parser);
+
+    if(token.type != TOKEN_IDENTIFIER){
+        printf("Error: Expected identifier, got %s\n", token.value);
+        return NULL;
+    }
+    // create assignment node
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = AST_ASSIGNMENT;
+    node->data.variable_assignment.name = strdup(token.value);
+
+    advance(parser); // advance to next token which should be assignment token
+    token = current_token(parser);
+
+    if(!match(parser, TOKEN_ASSIGN)){
+        printf("Error: Expected assignment token, got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
+    token = current_token(parser); // current token should be the expression
+    node->data.variable_assignment.value = parse_expression(parser);
+
+    if(!node->data.variable_assignment.value){
+        printf("Error: Unknown expression %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
+    if(!match(parser, TOKEN_SEMICOLON)){
+        printf("Error: Expected semicolon, got %s\n", token.value);
+        free_AST(node);
+        return NULL;
+    }
+
     return node;
 
 }

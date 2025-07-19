@@ -12,6 +12,7 @@ typedef enum {
     AST_PARAMETER,
     AST_ARGUMENT_LIST,
     AST_ARGUMENT,
+    AST_ASSIGNMENT,
     AST_NUMBER,
     AST_IDENTIFIER,
     AST_BOOLEAN,
@@ -72,6 +73,11 @@ typedef struct ASTNode {
             enum TokenType type;              // Argument type (determined during semantic analysis)
             struct ASTNode *value;            // Expression value of the argument
         }argument;
+
+        struct {
+            char *name;
+            struct ASTNode *value;
+        }variable_assignment;
         
         struct {
             int value;
@@ -125,5 +131,6 @@ ASTNode *parse_primary(Parser *parser);
 ASTNode *parse_variable_declaration(Parser *parser);
 ASTNode *parse_function_declaration(Parser *parser);
 ASTNode *parse_parameter_list(Parser *parser);
+ASTNode *parse_assignment(Parser *parser);
 
 #endif

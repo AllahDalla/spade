@@ -58,9 +58,6 @@ const KeywordMap operators[] = {
     {"[", TOKEN_LBRACKET},
     {"]", TOKEN_RBRACKET},
     {";", TOKEN_SEMICOLON},
-    {"()", TOKEN_PAREN},
-    {"[]", TOKEN_BRACKET},
-    {"{}", TOKEN_BRACE},
     {",", TOKEN_COMMA},
     {"->", TOKEN_ARROW},
 };
@@ -103,17 +100,15 @@ const char *token_type_strings[] = {
     "TOKEN_NOT",
     "TOKEN_LPAREN",
     "TOKEN_RPAREN",
-    "TOKEN_PAREN",
     "TOKEN_LBRACE",
     "TOKEN_RBRACE",
-    "TOKEN_BRACE",
     "TOKEN_LBRACKET",
     "TOKEN_RBRACKET",
-    "TOKEN_BRACKET",
     "TOKEN_SEMICOLON",
     "TOKEN_COMMA",
     "TOKEN_ARROW",
-    "TOKEN_STRING_LITERAL"
+    "TOKEN_STRING_LITERAL",
+    "TOKEN_STRING_CONCAT"
 };
 
 // Helper functions
@@ -282,12 +277,30 @@ int lexer(char *filename, Token *token_array, int max_tokens){
                     (byte == '*' && next_byte == '*')){
                     // it's a two character token{
 
-                    buffer[index++] = next_byte;
-                    buffer[index] = '\0';
-                    Token tk = token_type(buffer, 0);
-                    if(token_index < max_tokens) token_array[token_index++] = tk;
-                    token_count++;
-                    continue;
+                    // check for empty brackets
+                    if((byte == '(' || byte == '[' || byte == '{') && (next_byte == ')' || next_byte == ']' || next_byte == '}')){
+                        buffer[index] = '\0';
+                        Token tk = token_type(buffer, 0); // convert first character to token
+                        if(token_index < max_tokens) token_array[token_index++] = tk; // add token to array
+                        token_count++;
+                        index = 0; // reset index to clear buffer
+                        buffer[index++] = next_byte;
+                        buffer[index] = '\0';
+                        tk = token_type(buffer, 0); // convert second character to token
+                        if(token_index < max_tokens) token_array[token_index++] = tk; // add token to array
+                        token_count++;
+                        continue;
+                    
+                    }else{
+
+                        buffer[index++] = next_byte;
+                        buffer[index] = '\0';
+                        Token tk = token_type(buffer, 0);
+                        if(token_index < max_tokens) token_array[token_index++] = tk;
+                        token_count++;
+                        continue;
+                    }
+
                 }else{
                     ungetc(next_byte, file);
                 }

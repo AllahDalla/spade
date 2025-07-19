@@ -9,7 +9,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/spade.exe",
-            "args": ["test_scripts/function/simple_call.sp"],
+            "args": ["test_scripts/vm_test/vm_reassignment_bug.sp"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

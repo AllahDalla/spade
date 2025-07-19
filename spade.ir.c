@@ -227,6 +227,18 @@ void generate_ir(ASTNode *ast, IRCode *code, SymbolTable *symbol_table) {
                 emit_instruction_var(code, IR_STORE_VAR, ast->data.var_declaration.name);
             }
             break;
+
+        case AST_ASSIGNMENT: {
+            // look up the variable in the symbol table
+            Symbol *symbol = lookup_symbol_table(symbol_table, ast->data.variable_assignment.name);
+            if(symbol){
+                if(ast->data.variable_assignment.value){
+                    generate_ir(ast->data.variable_assignment.value, code, symbol_table);
+                    emit_instruction_var(code, IR_STORE_VAR, symbol->name);
+                }
+            }
+            break;
+        }
             
         case AST_UNARY_OPERATION:
             generate_ir(ast->data.unary_op.operand, code, symbol_table);

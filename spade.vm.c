@@ -173,6 +173,24 @@ void peek_stack(VirtualMachine *vm){
     }
 }
 
+Variable *lookup_variable(VirtualMachine *vm, char *name){
+    for(int i = 0; i <= vm->variable_count; i++){
+        if(strcmp(vm->variables[i].name, name) == 0){
+            return &vm->variables[i];
+        }
+    }
+    return NULL;
+}
+
+int update_variable(VirtualMachine *vm, char *name, int value){
+    Variable *variable = lookup_variable(vm, name);
+    if(variable){
+        variable->value = value;
+        return 1;
+    }
+    return 0;
+}
+
 /**
  * Stores a variable in the VM's variable table
  * @param vm Pointer to the virtual machine
@@ -198,7 +216,10 @@ VMResult store_variable(VirtualMachine *vm, char *name, int value){
         vm->variables = new_vars;
     }
 
-    vm->variables[++vm->variable_count] = variable;
+    if(!update_variable(vm, name, value)){
+        vm->variables[++vm->variable_count] = variable;
+    }
+
     return VM_SUCCESS;
 }
 

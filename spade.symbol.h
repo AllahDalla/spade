@@ -40,6 +40,6 @@ Symbol *lookup_symbol_table_function(SymbolTable *table, const char *name,      
 
 // Symbol table utility functions
 void free_symbol_table(SymbolTable *table);                                                 // Free all memory in symbol table
-void print_symbol_table(SymbolTable *table);                                                // Debug print symbol table contents
+void print_symbol_table(SymbolTable *table); 
 
 #endif

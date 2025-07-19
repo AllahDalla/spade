@@ -185,6 +185,36 @@ void analyze_AST(ASTNode *tree, SymbolTable *symbol_table){
             break;
         }
 
+        case AST_ASSIGNMENT: {
+            // check if the variable exists
+
+            Symbol *symbol = lookup_symbol_table(symbol_table, tree->data.variable_assignment.name);
+
+            if(!symbol){
+                printf("Error: Variable '%s' does not exist\n", tree->data.variable_assignment.name);
+                return;
+            }
+
+            // check if right side is a valid expression and if it matches the type of the variable
+            enum TokenType expr_type = get_expression_type(tree->data.variable_assignment.value, symbol_table);
+            if(expr_type == -1){
+                printf("Error: Invalid expression in assignment\n");
+                return;
+            }
+
+            if(symbol->type != expr_type){
+                printf("Error: Type mismatch in assignment of '%s'. Cannot assign %s to %s\n",
+                       tree->data.variable_assignment.name,
+                       get_token_name(expr_type),
+                       get_token_name(symbol->type));
+                return;
+            }
+
+            // Recursively analyze the right side of the assignment
+            analyze_AST(tree->data.variable_assignment.value, symbol_table);
+            break;
+        }
+
         case AST_BINARY_OPERATION: {
             // Check type compatibility of binary operation
             enum TokenType result_type = get_expression_type(tree, symbol_table);

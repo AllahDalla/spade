@@ -60,6 +60,11 @@ VMResult store_string(VirtualMachine *vm, char *string);
 VMResult load_string(VirtualMachine *vm, int index, char **string);
 void peek_string_pool(VirtualMachine *vm);
 
+// internal functions
+Variable *lookup_variable(VirtualMachine *vm, char *name);
+int update_variable(VirtualMachine *vm, char *name, int value);
+
+
 VMResult execute_ir_code(VirtualMachine *vm, IRCode *ir_code);
 
 #endif
