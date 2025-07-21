@@ -58,6 +58,9 @@
   - [ ] Generate IR for function declarations
   - [ ] Generate IR for function calls with argument passing
   - [ ] Implement function call mechanism with parameters
+- [ ] **Bug: Logical operators** 
+  - [ ] Issue: and/or operations have parser/execution bugs
+  - [ ] Need to verify correct AST generation and IR emission
 - [ ] Return value handling
 - [ ] Local variable scope (stack frames)
 

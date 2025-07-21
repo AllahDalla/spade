@@ -1,7 +1,0 @@
-C:\Users\Temp\Documents\Codebases\compiler\spade\spade.c;C:\Users\Temp\Documents\Codebases\compiler\spade\build\spade.dir\Debug\spade.obj
-C:\Users\Temp\Documents\Codebases\compiler\spade\spade.lexer.c;C:\Users\Temp\Documents\Codebases\compiler\spade\build\spade.dir\Debug\spade.lexer.obj
-C:\Users\Temp\Documents\Codebases\compiler\spade\spade.parser.c;C:\Users\Temp\Documents\Codebases\compiler\spade\build\spade.dir\Debug\spade.parser.obj
-C:\Users\Temp\Documents\Codebases\compiler\spade\spade.symbol.c;C:\Users\Temp\Documents\Codebases\compiler\spade\build\spade.dir\Debug\spade.symbol.obj
-C:\Users\Temp\Documents\Codebases\compiler\spade\spade.semantic.c;C:\Users\Temp\Documents\Codebases\compiler\spade\build\spade.dir\Debug\spade.semantic.obj
-C:\Users\Temp\Documents\Codebases\compiler\spade\spade.ir.c;C:\Users\Temp\Documents\Codebases\compiler\spade\build\spade.dir\Debug\spade.ir.obj
-C:\Users\Temp\Documents\Codebases\compiler\spade\spade.vm.c;C:\Users\Temp\Documents\Codebases\compiler\spade\build\spade.dir\Debug\spade.vm.obj

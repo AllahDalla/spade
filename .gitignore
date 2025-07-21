@@ -1,0 +1,90 @@
+# Build directories and outputs
+build/
+out/
+Debug/
+Release/
+bin/
+obj/
+target/
+
+# Executables and libraries  
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.pdb
+*.ilk
+*.obj
+*.o
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+*.cmake
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/c_cpp_properties.json
+*.vcxproj*
+*.sln
+*.suo
+*.user
+*.filters
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# Visual Studio temporary files
+*.tmp
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.log
+*.svclog
+*.scc
+
+# Code::Blocks
+*.depend
+*.layout
+*.cbp
+
+# Dev-C++
+*.dev
+
+# MinGW
+*.a
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Platform specific
+*.dSYM/
+*.su
+*.idb
+*.pch
+
+# Temporary files
+*~
+*.swp
+*.swo
+.tmp/

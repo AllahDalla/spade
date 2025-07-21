@@ -1,7 +1,8 @@
-#include "spade.lexer.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include "spade.lexer.h"
 
 typedef struct {
     const char *keyword;
@@ -25,6 +26,8 @@ const KeywordMap keywords[] = {
     {"for", TOKEN_FOR},
     {"return", TOKEN_RETURN},
     {"task", TOKEN_TASK},
+    {"and", TOKEN_AND},
+    {"or", TOKEN_OR},
     
     // Boolean literals
     {"true", TOKEN_TRUE},
@@ -48,8 +51,7 @@ const KeywordMap operators[] = {
     {">", TOKEN_GREATER_THAN},
     {"<=", TOKEN_LESS_THAN_EQUALS},
     {">=", TOKEN_GREATER_THAN_EQUALS},
-    {"&&", TOKEN_AND},
-    {"||", TOKEN_OR},
+
     {"!", TOKEN_NOT},
     {"(", TOKEN_LPAREN},
     {")", TOKEN_RPAREN},
@@ -327,6 +329,9 @@ int lexer(char *filename, Token *token_array, int max_tokens){
             token_count++;
         }
     }
+
+    Token tk = {TOKEN_EOF, "EOF"};
+    if(token_index < max_tokens) token_array[token_index++] = tk;
 
     fclose(file);
     return token_count;
