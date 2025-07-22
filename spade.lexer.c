@@ -323,6 +323,18 @@ int lexer(char *filename, Token *token_array, int max_tokens){
                 continue;
             }
 
+            // check for comments
+            if(byte == '/' && next_byte == '/'){
+                while ((byte = fgetc(file)) != '\n'){
+                    /* code */
+                    // buffer[0] = byte;
+                    // buffer[1] = '\0';
+                    continue; // consume  all characters until newline
+                }
+
+                continue;
+            }
+
             buffer[index] = '\0';
             Token tk = token_type(buffer, 0);
             if(token_index < max_tokens) token_array[token_index++] = tk;

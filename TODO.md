@@ -15,6 +15,7 @@
 - [x] **Virtual Machine Implementation** - Complete execution engine
 - [x] **String Literal Support** - Basic string handling with string pool
 - [x] **String Concatenation** - Full string concatenation with proper type checking
+- [x] **Comment Support** - Single-line comments with `//` syntax
 
 ## 🔄 Current Development Plan
 

@@ -30,7 +30,7 @@ Spade is a statically-typed programming language with C-like syntax. This reposi
 ### Operators
 - **Arithmetic**: `+`, `-`, `*`, `/`, `%`, `**` (power)
 - **Comparison**: `==`, `!=`, `<`, `>`, `<=`, `>=`
-- **Logical**: `&&`, `||`, `!`
+- **Logical**: `and`, `or`, `!`
 - **Assignment**: `=`
 
 ### Language Constructs
@@ -40,14 +40,14 @@ Spade is a statically-typed programming language with C-like syntax. This reposi
 
 ### Example Code
 ```spade
-// Variable declarations
-int x = 10;
-bool flag = true;
-string message = "Hello World";
+// Variable declarations with comments
+int x = 10;               // Integer variable
+bool flag = true;         // Boolean variable  
+string message = "Hello World";  // String variable
 
 // Complex expressions
 int result = (5 + 3) * 2 - 1;
-bool comparison = x > 5 && flag;
+bool comparison = x > 5 and flag;  // Using 'and' keyword
 int power = 2 ** 3 ** 2;  // Right-associative: 2^(3^2) = 512
 
 // String concatenation
@@ -86,6 +86,7 @@ Instructions           Results
    - Character-by-character tokenization
    - Keyword and operator recognition
    - Number and string literal parsing
+   - Single-line comment support (`//`)
    - Comment and whitespace handling
 
 2. **Parser** (`spade.parser.c/h`)
@@ -392,8 +393,8 @@ current state, and areas for improvement.
 4. `+`, `-` (Addition, Subtraction)
 5. `<`, `>`, `<=`, `>=` (Comparison)
 6. `==`, `!=` (Equality)
-7. `&&` (Logical And)
-8. `||` (Logical Or)
+7. `and` (Logical And)
+8. `or` (Logical Or)
 
 ### IR Instruction Set
 - **Stack Operations**: `PUSH_CONST`, `PUSH_VAR`, `STORE_VAR`
