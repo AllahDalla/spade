@@ -28,6 +28,12 @@ const KeywordMap keywords[] = {
     {"task", TOKEN_TASK},
     {"and", TOKEN_AND},
     {"or", TOKEN_OR},
+    {"class", TOKEN_CLASS},
+    {"break", TOKEN_BREAK},
+    {"continue", TOKEN_CONTINUE},
+    {"print", TOKEN_PRINT},
+    {"super", TOKEN_SUPER},
+    {"this", TOKEN_THIS},
     
     // Boolean literals
     {"true", TOKEN_TRUE},
@@ -110,7 +116,13 @@ const char *token_type_strings[] = {
     "TOKEN_COMMA",
     "TOKEN_ARROW",
     "TOKEN_STRING_LITERAL",
-    "TOKEN_STRING_CONCAT"
+    "TOKEN_STRING_CONCAT",
+    "TOKEN_CLASS",
+    "TOKEN_BREAK",
+    "TOKEN_CONTINUE",
+    "TOKEN_PRINT",
+    "TOKEN_SUPER",
+    "TOKEN_THIS",
 };
 
 // Helper functions
@@ -314,6 +326,12 @@ int lexer(char *filename, Token *token_array, int max_tokens){
                 while((byte = fgetc(file)) != EOF && byte != '"'){
                     if(index < 256) buffer[index++] = byte;
                 }
+
+                if(byte != '"'){
+                    printf("Error: Unterminated string literal\n");
+                    exit(1);
+                }
+
                 buffer[index] = '\0';
                 Token tk;
                 tk.type = TOKEN_STRING_LITERAL;
