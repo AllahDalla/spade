@@ -121,6 +121,8 @@ void free_AST(ASTNode *node);
 ASTNode *parse_program(Parser *parser);
 ASTNode *parse_statement(Parser *parser);
 ASTNode *parse_expression(Parser *parser);
+ASTNode *parse_logical_or(Parser *parser);
+ASTNode *parse_logical_and(Parser *parser);
 ASTNode *parse_equality(Parser *parser);
 ASTNode *parse_comparison(Parser *parser);
 ASTNode *parse_term(Parser *parser);

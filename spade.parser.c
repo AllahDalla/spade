@@ -479,8 +479,59 @@ ASTNode *parse_statement(Parser *parser) {
  * @return An AST node representing the parsed expression, or NULL on error
  */
 ASTNode *parse_expression(Parser *parser){
-    return parse_equality(parser);
+    return parse_logical_or(parser);
 }
+
+
+ASTNode *parse_logical_or(Parser *parser){
+    ASTNode *left = parse_logical_and(parser);
+    if(!left){
+        return NULL;
+    }
+
+    while(match(parser, TOKEN_OR)){
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *right = parse_logical_and(parser);
+        if(!right){
+            free_AST(left);
+            return NULL;
+        }
+        ASTNode *bin_node = malloc(sizeof(ASTNode));
+        bin_node->type = AST_BINARY_OPERATION;
+        bin_node->data.bin_op.op = operator;
+        bin_node->data.bin_op.left = left;
+        bin_node->data.bin_op.right = right;
+        left = bin_node;
+    }
+
+    return left;
+}
+
+
+ASTNode *parse_logical_and(Parser *parser){
+    ASTNode *left = parse_equality(parser);
+    if(!left){
+        return NULL;
+    }
+
+    while(match(parser, TOKEN_AND)){
+        enum TokenType operator = previous_token(parser).type;
+        ASTNode *right = parse_equality(parser);
+        if(!right){
+            free_AST(left);
+            return NULL;
+        }
+        ASTNode *bin_node = malloc(sizeof(ASTNode));
+        bin_node->type = AST_BINARY_OPERATION;
+        bin_node->data.bin_op.op = operator;
+        bin_node->data.bin_op.left = left;
+        bin_node->data.bin_op.right = right;
+        left = bin_node;
+    }
+
+    return left;
+}
+
 
 ASTNode *parse_equality(Parser *parser){
     ASTNode *left = parse_comparison(parser);
@@ -505,6 +556,8 @@ ASTNode *parse_equality(Parser *parser){
 
     return left;
 }
+
+
 
 ASTNode *parse_comparison(Parser *parser){
 
